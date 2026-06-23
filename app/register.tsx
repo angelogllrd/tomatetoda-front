@@ -31,6 +31,12 @@ export default function RegisterScreen() {
     return /\S+@\S+\.\S+/.test(emailStr);
   };
 
+  // Función para validar formato de teléfono
+  const isValidPhone = (phoneStr: string) => {
+    // Permite un '+' opcional, números, espacios y guiones (entre 8 y 20 caracteres en total)
+    return /^\+?[0-9\s\-]{8,20}$/.test(phoneStr);
+  };
+
   const handleRegister = () => {
     setErrorMsg("");
 
@@ -48,6 +54,11 @@ export default function RegisterScreen() {
 
     if (!isValidEmail(email)) {
       setErrorMsg("El email ingresado no es válido");
+      return;
+    }
+
+    if (!isValidPhone(phone)) {
+      setErrorMsg("Ingresá un número de teléfono válido");
       return;
     }
 
