@@ -37,9 +37,9 @@ export default function LoginScreen() {
       return;
     }
     if (email === "maria@demo.com" && password === "123456") {
-      router.push("/home-organizador"); // Tendremos que crear este archivo
+      router.push("/(tabs)/home-organizador");
     } else if (email === "carlos@demo.com" && password === "123456") {
-      router.push("/home-proveedor"); // Tendremos que crear este archivo
+      router.push("/(tabs)/home-proveedor");
     } else {
       setErrorMsg(
         "Usuario no encontrado. Probá con alguno de los usuarios demo",
