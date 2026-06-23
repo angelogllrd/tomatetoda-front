@@ -34,10 +34,52 @@ const mockEvents = [
 export default function HomeOrganizadorScreen() {
   const router = useRouter();
 
-  // Calculamos las estadísticas leyendo los datos simulados
+  // ESTADISTICAS SOBRE DATOS SIMULADOS
+
+  // 1. Calculamos el total de eventos
   const totalEvents = mockEvents.length;
-  const pendingEvents = mockEvents.filter((e) => e.status === "Abierto").length;
-  const closedEvents = mockEvents.filter((e) => e.status === "Cerrado").length;
+
+  // 2. Sumamos todas las "nuevas ofertas" de los eventos (Pendientes)
+  const pendingOffers = mockEvents.reduce(
+    (total, evento) => total + (evento.newOffersCount || 0),
+    0,
+  );
+
+  // 3. Calculamos los cerrados (si el status es "Cerrado" o si la fecha es de hoy o anterior)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reseteamos la hora para comparar solo el día
+
+  const closedEvents = mockEvents.filter((evento) => {
+    if (evento.status === "Cerrado") return true;
+
+    // Convertimos un string como "15 jul 2026" a formato de Fecha (Date)
+    const meses: Record<string, number> = {
+      ene: 0,
+      feb: 1,
+      mar: 2,
+      abr: 3,
+      may: 4,
+      jun: 5,
+      jul: 6,
+      ago: 7,
+      sep: 8,
+      oct: 9,
+      nov: 10,
+      dic: 11,
+    };
+    const partes = evento.date.split(" ");
+
+    if (partes.length === 3) {
+      const fechaEvento = new Date(
+        Number(partes[2]),
+        meses[partes[1].toLowerCase()],
+        Number(partes[0]),
+      );
+      // Si la fecha del evento es igual o anterior a hoy, cuenta como cerrado
+      if (fechaEvento <= today) return true;
+    }
+    return false;
+  }).length;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -64,7 +106,7 @@ export default function HomeOrganizadorScreen() {
             <Text style={styles.statLabel}>Eventos</Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{pendingEvents}</Text>
+            <Text style={styles.statNumber}>{pendingOffers}</Text>
             <Text style={styles.statLabel}>Pendientes</Text>
           </View>
           <View style={styles.statBox}>
