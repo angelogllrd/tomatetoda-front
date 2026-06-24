@@ -37,6 +37,7 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+app/prueba.tsx
 
 # generated native folders
 /ios

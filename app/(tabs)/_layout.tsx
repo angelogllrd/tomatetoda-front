@@ -15,7 +15,7 @@ export default function TabsLayout() {
         tabBarStyle: {
           borderTopWidth: 1,
           borderTopColor: "#E5E5E5",
-          elevation: 0, // Diseño plano sin sombras
+          // elevation: 0, // Diseño plano sin sombras
           backgroundColor: "#fff",
           // Le sumamos el margen seguro de abajo al alto total
           height: 60 + insets.bottom,

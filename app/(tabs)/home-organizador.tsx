@@ -1,11 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -182,7 +182,10 @@ export default function HomeOrganizadorScreen() {
                   </Text>
                 ) : evento.newOffersCount && evento.newOffersCount > 0 ? (
                   <Text style={styles.newOfferText}>
-                    {evento.newOffersCount} oferta nueva
+                    {evento.newOffersCount}{" "}
+                    {evento.newOffersCount === 1
+                      ? "oferta nueva"
+                      : "ofertas nuevas"}
                   </Text>
                 ) : (
                   <Text style={styles.noOfferText}>Sin ofertas aún</Text>
