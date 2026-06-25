@@ -150,7 +150,7 @@ export default function DatosProveedorScreen() {
         {/* BOTÓN VOLVER AL INICIO */}
         <TouchableOpacity
           style={[styles.actionButton, styles.btnOutline, { marginTop: 8 }]}
-          onPress={() => router.push("/(tabs)/home-organizador")}
+          onPress={() => router.push("/(tabs-org)/home-organizador")}
         >
           <Text style={styles.btnOutlineText}>Volver al inicio</Text>
         </TouchableOpacity>

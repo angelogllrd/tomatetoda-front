@@ -23,7 +23,7 @@ export default function ConfirmacionPublicacionScreen() {
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push("/(tabs)/home-organizador")}
+          onPress={() => router.push("/(tabs-org)/home-organizador")}
         >
           <Text style={styles.buttonText}>Ver mis eventos</Text>
         </TouchableOpacity>

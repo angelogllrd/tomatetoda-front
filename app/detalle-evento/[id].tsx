@@ -18,7 +18,7 @@ const mockEventData = {
   people: 50,
   description:
     "2 cajones de cerveza, 20 gaseosas variadas, 10 jugos, agua mineral para todos.",
-  initialStatus: "Abierto",
+  initialStatus: "Abierto", // cambiar a "Cerrado" para ver detalle de evento caducado
 };
 
 const mockOffersData = [
@@ -84,6 +84,9 @@ export default function DetalleEventoScreen() {
   const pendingOffers = offers.filter((o) => o.status === "Pendiente");
   const rejectedOffers = offers.filter((o) => o.status === "Rechazada");
   const acceptedOffer = offers.find((o) => o.status === "Aceptada");
+
+  // NUEVO: Simulamos si el evento caducó (En la vida real esto lo calcularías comparando la fecha de hoy con mockEventData.date)
+  const isExpired = true; // Cambiá esto a 'true' para probar la pantalla de caducado
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
@@ -158,7 +161,7 @@ export default function DetalleEventoScreen() {
         ------------------------ */}
 
         {eventStatus === "Cerrado" && acceptedOffer ? (
-          /* SI EL EVENTO ESTÁ CERRADO -> MOSTRAMOS OFERTA ACEPTADA */
+          /* 1. ESTADO: OFERTA ACEPTADA (ÉXITO) */
           <View style={styles.acceptedOfferCard}>
             <Text style={styles.acceptedOfferTag}>Oferta aceptada</Text>
             <View style={styles.offerHeaderRow}>
@@ -188,8 +191,17 @@ export default function DetalleEventoScreen() {
               />
             </TouchableOpacity>
           </View>
+        ) : eventStatus === "Cerrado" && !acceptedOffer ? (
+          /* ESTADO VACÍO: EVENTO CADUCADO */
+          <View style={styles.expiredStateCard}>
+            <Text style={styles.expiredTitle}>Evento caducado</Text>
+            <Text style={styles.expiredSub}>
+              La fecha límite de este evento ya pasó y no se concretó ninguna
+              oferta
+            </Text>
+          </View>
         ) : offers.length === 0 ? (
-          /* SI TODAVIA NO HAY OFERTAS -> MOSTRAMOS ESTADO VACIO */
+          /* 3. ESTADO: ESPERANDO OFERTAS (VACÍO) */
           <View style={styles.emptyOffersState}>
             <Text style={styles.emptyOffersTitle}>Esperando ofertas</Text>
             <Text style={styles.emptyOffersSub}>
@@ -197,9 +209,8 @@ export default function DetalleEventoScreen() {
             </Text>
           </View>
         ) : (
+          /* 4. ESTADO: MOSTRAR OFERTAS PENDIENTES / RECHAZADAS */
           <>
-            {/* SINO, MUESTRO OFERTAS PENDIENTES Y RECHAZADAS */}
-
             {pendingOffers.length > 0 && (
               <>
                 {/* TITULO "Ofertas recibidas" */}
@@ -626,6 +637,28 @@ const styles = StyleSheet.create({
   emptyOffersSub: {
     fontSize: 14,
     color: "#888",
+    textAlign: "center",
+    lineHeight: 22,
+  },
+
+  expiredStateCard: {
+    backgroundColor: "#FAFAFA",
+    paddingVertical: 40,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#EAEAEA",
+    alignItems: "center",
+  },
+  expiredTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#999",
+    marginBottom: 8,
+  },
+  expiredSub: {
+    fontSize: 14,
+    color: "#999",
     textAlign: "center",
     lineHeight: 22,
   },

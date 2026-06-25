@@ -177,9 +177,15 @@ export default function HomeOrganizadorScreen() {
 
               <View style={styles.eventFooter}>
                 {evento.status === "Cerrado" ? (
-                  <Text style={styles.acceptedOfferText}>
-                    Oferta aceptada: {evento.acceptedOfferAmount}
-                  </Text>
+                  evento.acceptedOfferAmount ? (
+                    <Text style={styles.acceptedOfferText}>
+                      Oferta aceptada: {evento.acceptedOfferAmount}
+                    </Text>
+                  ) : (
+                    <Text style={styles.expiredFooterText}>
+                      Evento caducado
+                    </Text>
+                  )
                 ) : evento.newOffersCount && evento.newOffersCount > 0 ? (
                   <Text style={styles.newOfferText}>
                     {evento.newOffersCount}{" "}
@@ -381,6 +387,12 @@ const styles = StyleSheet.create({
   acceptedOfferText: {
     fontSize: 14,
     color: "#16A34A",
+    fontWeight: "500",
+  },
+
+  expiredFooterText: {
+    fontSize: 14,
+    color: "#AAA",
     fontWeight: "500",
   },
 });
