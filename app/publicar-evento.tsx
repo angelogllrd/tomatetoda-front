@@ -57,7 +57,7 @@ export default function PublicarEventoScreen() {
 
     // 2. Validación de campos de fecha vacíos
     if (!dia || !mes || !anio) {
-      setErrorMsg("Completá la fecha completa (Día, Mes y Año)");
+      setErrorMsg("Completá toda la fecha (Día, Mes y Año)");
       return;
     }
 
@@ -65,11 +65,12 @@ export default function PublicarEventoScreen() {
     const anioNum = parseInt(anio, 10);
     const anioActual = new Date().getFullYear();
 
-    // 3. Validación del año (que tenga 4 dígitos y no sea del pasado)
-    if (anio.length < 4 || anioNum < anioActual) {
-      setErrorMsg(`El año debe ser ${anioActual} o futuro`);
-      return;
-    }
+    // YA SE VERIFICA EN EL ÚLTIMO CASO
+    // // 3. Validación del año (que tenga 4 dígitos y no sea del pasado)
+    // if (anio.length < 4 || anioNum < anioActual) {
+    //   setErrorMsg(`El año debe ser ${anioActual} o futuro`);
+    //   return;
+    // }
 
     // 4. Validación matemática de días según el mes y año (calcula bisiestos automáticamente)
     // En JavaScript, el día "0" del mes siguiente nos da el último día del mes actual.
@@ -77,6 +78,17 @@ export default function PublicarEventoScreen() {
 
     if (diaNum < 1 || diaNum > diasDelMes) {
       setErrorMsg(`${mes.nombre} del ${anioNum} solo tiene ${diasDelMes} días`);
+      return;
+    }
+
+    // 5. Validación: La fecha completa no puede ser anterior a hoy
+    // Nota: En JavaScript los meses van del 0 (Enero) al 11 (Diciembre), por eso restamos 1
+    const fechaIngresada = new Date(anioNum, mes.id - 1, diaNum);
+    const fechaHoy = new Date();
+    fechaHoy.setHours(0, 0, 0, 0); // Comparamos solo la fecha, ignorando la hora actual
+
+    if (fechaIngresada < fechaHoy) {
+      setErrorMsg("La fecha del evento no puede ser anterior a hoy");
       return;
     }
 
