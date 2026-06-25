@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function ConfirmacionPublicacionScreen() {
+export default function ConfirmacionOfertaScreen() {
   const router = useRouter();
 
   return (
@@ -15,20 +15,27 @@ export default function ConfirmacionPublicacionScreen() {
         </View>
 
         {/* TEXTOS */}
-        <Text style={styles.title}>Evento publicado</Text>
+        <Text style={styles.title}>Oferta enviada</Text>
         <Text style={styles.subtitle}>
-          Tu evento ya está visible para los proveedores. Pronto recibirás
-          ofertas.
+          El organizador verá tu propuesta. Si la acepta, recibirás sus datos de
+          contacto.
         </Text>
       </View>
 
       {/* BOTONES DE ACCIÓN */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push("/(tabs-org)/home-organizador")}
+          style={styles.primaryButton}
+          onPress={() => router.push("/(tabs-prov)/mis-ofertas")}
         >
-          <Text style={styles.buttonText}>Ver mis eventos</Text>
+          <Text style={styles.primaryButtonText}>Ver mis ofertas</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={() => router.push("/(tabs-prov)/home-proveedor")}
+        >
+          <Text style={styles.secondaryButtonText}>Ver más eventos</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -41,14 +48,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
     paddingHorizontal: 24,
   },
+
   content: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
+
   iconContainer: {
     marginBottom: 24,
   },
+
   title: {
     fontSize: 24,
     fontWeight: "bold",
@@ -56,6 +66,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: "center",
   },
+
   subtitle: {
     fontSize: 16,
     color: "#666",
@@ -63,17 +74,34 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     paddingHorizontal: 20,
   },
+
   footer: {
     paddingBottom: 40,
   },
-  button: {
+
+  primaryButton: {
     backgroundColor: "#E8321E",
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: "center",
+    marginBottom: 12,
   },
-  buttonText: {
+  primaryButtonText: {
     color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
+  secondaryButton: {
+    backgroundColor: "#fff",
+    paddingVertical: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    alignItems: "center",
+  },
+  secondaryButtonText: {
+    color: "#555",
     fontSize: 16,
     fontWeight: "bold",
   },
