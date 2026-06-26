@@ -1,7 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Para guardar el token
+import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  ActivityIndicator, // Spinner de carga
   Image,
   StyleSheet,
   Text,
@@ -11,14 +14,20 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+// IP LOCAL DE LA PC
+const API_URL = "http://192.168.100.4:8000/api";
+
 export default function LoginScreen() {
   const router = useRouter();
+
+  // Estados del formulario
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Indicador para el spinner
 
-  // Función para rellenar datos de prueba
+  // Función para rellenar usuario demo
   const handleDemoLogin = (role: "org" | "prov") => {
     setErrorMsg("");
     if (role === "org") {
@@ -26,29 +35,57 @@ export default function LoginScreen() {
       setPassword("123456");
     } else {
       setEmail("carlos@demo.com");
-      setPassword("123456");
+      setPassword("password123");
     }
   };
 
-  const handleLogin = () => {
+  // Lógica de inicio de sesión con Laravel
+  const handleLogin = async () => {
     setErrorMsg("");
     if (!email || !password) {
-      setErrorMsg("Completá todos los campos");
+      setErrorMsg("Completá todos los campos.");
       return;
     }
-    if (email === "maria@demo.com" && password === "123456") {
-      router.push("/(tabs-org)/home-organizador");
-    } else if (email === "carlos@demo.com" && password === "123456") {
-      router.push("/(tabs-prov)/home-proveedor");
-    } else {
-      setErrorMsg(
-        "Usuario no encontrado. Probá con alguno de los usuarios demo",
-      );
+
+    setIsLoading(true); // Se muestra spinner
+
+    try {
+      // Enviamos credenciales al backend
+      const respuesta = await axios.post(`${API_URL}/login`, {
+        email: email.toLowerCase().trim(),
+        password: password,
+      });
+
+      // Extraemos el token y el usuario de la respuesta
+      const { token, user } = respuesta.data;
+
+      // Guardamos los datos (sesión) en el celular de forma persistente
+      await AsyncStorage.setItem("userToken", token);
+      await AsyncStorage.setItem("userRole", user.role);
+      await AsyncStorage.setItem("userId", user.id.toString());
+
+      // Redirección según el rol de la base de datos
+      if (user.role === "organizador") {
+        router.replace("/(tabs-org)/home-organizador");
+        // TODO: cambiar "bodega" por "proveedor" en BD
+      } else if (user.role === "bodega") {
+        router.replace("/(tabs-prov)/home-proveedor");
+      } else {
+        setErrorMsg("Rol no reconocido en la aplicación");
+      }
+    } catch (error: any) {
+      // Manejo de errores de Laravel (credenciales incorrectas)
+      const mensaje =
+        error.response?.data?.message || "Error al conectar con el servidor";
+      setErrorMsg(mensaje);
+    } finally {
+      setIsLoading(false); // Se oculta spinner
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* ENCABEZADO Y LOGO */}
       <View style={styles.header}>
         <Image
           source={require("@/assets/images/logo1.png")}
@@ -59,6 +96,7 @@ export default function LoginScreen() {
         <Text style={styles.subtitle}>Iniciá sesión para continuar</Text>
       </View>
 
+      {/* CAJA DE ACCESOS DIRECTOS (DEMO) */}
       <View style={styles.demoBox}>
         <Text style={styles.demoTitle}>Acceso demo rápido</Text>
         <View style={styles.demoButtons}>
@@ -77,7 +115,9 @@ export default function LoginScreen() {
         </View>
       </View>
 
+      {/* FORMULARIO DE INGRESO */}
       <View style={styles.form}>
+        {/* Campo Email */}
         <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
@@ -91,6 +131,7 @@ export default function LoginScreen() {
           autoCapitalize="none"
         />
 
+        {/* Campo Contraseña */}
         <Text style={styles.label}>Contraseña</Text>
         <View style={styles.passwordContainer}>
           <TextInput
@@ -112,17 +153,29 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Mensaje de Error */}
         {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
 
+        {/* Recuperar Contraseña */}
         <TouchableOpacity onPress={() => router.push("/forgot-password")}>
           <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Iniciar sesión</Text>
+        {/* Botón de inicio de sesión */}
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={handleLogin}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.loginButtonText}>Iniciar sesión</Text>
+          )}
         </TouchableOpacity>
       </View>
 
+      {/* PIE DE PÁGINA (REGISTRO) */}
       <View style={styles.footer}>
         <TouchableOpacity onPress={() => router.push("/register")}>
           <Text style={styles.registerText}>
@@ -136,12 +189,15 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
+  // CONTENEDOR PRINCIPAL
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",
     paddingHorizontal: 24,
     justifyContent: "center",
   },
+
+  // ENCABEZADO Y LOGO
   header: {
     alignItems: "center",
     marginBottom: 32,
@@ -161,6 +217,8 @@ const styles = StyleSheet.create({
     color: "#888",
     marginTop: 4,
   },
+
+  // ACCESO DEMO
   demoBox: {
     backgroundColor: "#fff",
     padding: 16,
@@ -191,6 +249,8 @@ const styles = StyleSheet.create({
     color: "#333",
     fontSize: 14,
   },
+
+  // FORMULARIO E INPUTS
   form: {
     marginBottom: 16,
   },
@@ -236,6 +296,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 16,
   },
+
+  // PIE DE PÁGINA (BOTON Y REGISTRO)
   loginButton: {
     backgroundColor: "#E8321E",
     paddingVertical: 16,
