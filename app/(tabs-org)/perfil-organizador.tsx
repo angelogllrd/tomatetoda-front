@@ -1,11 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -20,23 +20,23 @@ export default function PerfilOrganizadorScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      {/* HEADER CON AVATAR */}
+      <View style={styles.header}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>J</Text>
+        </View>
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.name}>Juan García</Text>
+          <Text style={styles.role}>Organizador/a</Text>
+        </View>
+      </View>
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ENCABEZADO DE PERFIL */}
-        <View style={styles.headerProfile}>
-          <View style={styles.avatarLarge}>
-            <Text style={styles.avatarTextLarge}>J</Text>
-          </View>
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.name}>Juan García</Text>
-            <Text style={styles.role}>Organizador/a</Text>
-          </View>
-        </View>
-
         {/* TARJETA DE DATOS PERSONALES */}
-        <View style={styles.infoCard}>
+        <View style={styles.card}>
           <View style={styles.infoRow}>
             <Ionicons
               name="person-outline"
@@ -101,30 +101,32 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F5F5F5",
   },
-  scrollContent: {
-    padding: 24,
-  },
 
-  headerProfile: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 32,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5E5",
   },
-  avatarLarge: {
+  avatar: {
     width: 64,
     height: 64,
     borderRadius: 32,
     backgroundColor: "#E8321E",
     justifyContent: "center",
     alignItems: "center",
+    marginRight: 16,
   },
-  avatarTextLarge: {
+  avatarText: {
     color: "#fff",
     fontSize: 28,
     fontWeight: "bold",
   },
   headerTextContainer: {
-    marginLeft: 16,
+    flex: 1,
   },
   name: {
     fontSize: 20,
@@ -137,7 +139,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  infoCard: {
+  scrollContent: {
+    padding: 24,
+    paddingBottom: 40,
+  },
+
+  card: {
     backgroundColor: "#fff",
     borderRadius: 8,
     borderWidth: 1,
@@ -154,7 +161,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   infoLabel: {
-    fontSize: 12,
+    fontSize: 13,
     color: "#AAA",
     marginBottom: 2,
   },
