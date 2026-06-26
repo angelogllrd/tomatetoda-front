@@ -1,22 +1,32 @@
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+// IP LOCAL DE LA PC
+const API_URL = "http://192.168.100.4:8000/api";
+
 export default function RegisterScreen() {
   const router = useRouter();
+
+  // Estados de interfaz
   const [role, setRole] = useState<"organizador" | "proveedor">("organizador");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  // Estados para los campos
+  // Estados para los campos del formulario
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -24,66 +34,96 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [errorMsg, setErrorMsg] = useState("");
-
-  // Expresión regular simple para validar formato de email
+  // FUNCIONES DE VALIDACIÓN
   const isValidEmail = (emailStr: string) => {
     return /\S+@\S+\.\S+/.test(emailStr);
   };
 
-  // Función para validar formato de teléfono
   const isValidPhone = (phoneStr: string) => {
-    // Permite un '+' opcional, números, espacios y guiones (entre 8 y 20 caracteres en total)
     return /^\+?[0-9\s\-]{8,20}$/.test(phoneStr);
   };
 
-  const handleRegister = () => {
+  const clearError = () => setErrorMsg("");
+
+  // LÓGICA DE REGISTRO CON LARAVEL
+  const handleRegister = async () => {
     setErrorMsg("");
 
     // Validación general de campos vacíos
     if (!name || !email || !phone || !password || !confirmPassword) {
-      setErrorMsg("Completá todos los campos");
+      setErrorMsg("Completá todos los campos.");
       return;
     }
 
     // Validación específica para proveedor
     if (role === "proveedor" && !businessName) {
-      setErrorMsg("Ingresá el nombre de tu negocio");
+      setErrorMsg("Ingresá el nombre de tu negocio.");
       return;
     }
 
     if (!isValidEmail(email)) {
-      setErrorMsg("El email ingresado no es válido");
+      setErrorMsg(
+        "El correo electrónico debe ser una dirección de correo válida.",
+      );
       return;
     }
 
     if (!isValidPhone(phone)) {
-      setErrorMsg("Ingresá un número de teléfono válido");
+      setErrorMsg("Ingresá un número de teléfono válido.");
       return;
     }
 
-    if (password.length < 6) {
-      setErrorMsg("La contraseña debe tener al menos 6 caracteres");
+    if (password.length < 8) {
+      setErrorMsg("La contraseña debe tener al menos 8 caracteres.");
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMsg("Las contraseñas no coinciden");
+      setErrorMsg("Las contraseñas no coinciden.");
       return;
     }
 
-    // Si todo está bien, simulamos que va al home correspondiente
-    if (role === "organizador") {
-      router.push("/home-organizador");
-    } else {
-      router.push("/home-proveedor");
+    setIsLoading(true);
+
+    try {
+      // Petición POST al backend
+      const respuesta = await axios.post(`${API_URL}/register`, {
+        name: name,
+        email: email.toLowerCase().trim(),
+        phone: phone,
+        password: password,
+        password_confirmation: confirmPassword, // Laravel exige confirmación
+        role: role,
+        company_name: role === "proveedor" ? businessName : null, // Solo se envía si es proveedor
+      });
+
+      // Obtenemos los datos y el token
+      const { token, user } = respuesta.data;
+
+      // Guardamos la sesión
+      await AsyncStorage.setItem("userToken", token);
+      await AsyncStorage.setItem("userRole", user.role);
+      await AsyncStorage.setItem("userId", user.id.toString());
+
+      // Redirigimos al home correspondiente
+      if (user.role === "organizador") {
+        router.replace("/(tabs-org)/home-organizador");
+      } else if (user.role === "proveedor") {
+        router.replace("/(tabs-prov)/home-proveedor");
+      }
+    } catch (error: any) {
+      // Si Laravel devuelve error (ej. email ya registrado), lo mostramos
+      const mensaje =
+        error.response?.data?.message || "Error al registrar la cuenta";
+      setErrorMsg(mensaje);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const clearError = () => setErrorMsg("");
-
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* ENCABEZADO */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -94,9 +134,8 @@ export default function RegisterScreen() {
         <Text style={styles.headerTitle}>Crear cuenta</Text>
       </View>
 
-      {/* RESTO DE LA PANTALLA */}
       <View style={styles.mainContent}>
-        {/* ENVOLTORIO DE TABS CON ESPACIO ARRIBA Y MARGENES LATERALES */}
+        {/* SELECTOR DE ROLES (TABS) */}
         <View style={styles.tabsWrapper}>
           <View style={styles.tabsContainer}>
             <TouchableOpacity
@@ -118,6 +157,7 @@ export default function RegisterScreen() {
                 Organizador
               </Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               style={[
                 styles.tab,
@@ -140,6 +180,7 @@ export default function RegisterScreen() {
           </View>
         </View>
 
+        {/* FORMULARIO */}
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -180,6 +221,7 @@ export default function RegisterScreen() {
             keyboardType="phone-pad"
           />
 
+          {/* CAMPO CONDICIONAL: Solo para proveedores */}
           {role === "proveedor" ? (
             <View>
               <Text style={styles.label}>Nombre del negocio / empresa</Text>
@@ -199,7 +241,7 @@ export default function RegisterScreen() {
           <View style={styles.passwordContainer}>
             <TextInput
               style={styles.passwordInput}
-              placeholder="Mínimo 6 caracteres"
+              placeholder="Mínimo 8 caracteres"
               secureTextEntry={!showPassword}
               value={password}
               onChangeText={(t) => {
@@ -228,15 +270,23 @@ export default function RegisterScreen() {
             }}
           />
 
+          {/* MENSAJE DE ERROR */}
           {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
 
+          {/* BOTÓN REGISTRAR */}
           <TouchableOpacity
             style={styles.registerButton}
             onPress={handleRegister}
+            disabled={isLoading}
           >
-            <Text style={styles.registerButtonText}>Crear cuenta</Text>
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.registerButtonText}>Crear cuenta</Text>
+            )}
           </TouchableOpacity>
 
+          {/* ENLACE AL INICIO DE SESIÓN */}
           <TouchableOpacity
             onPress={() => router.push("/login")}
             style={styles.footerLink}
@@ -253,10 +303,20 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
+  // CONTENEDORES GENERALES
   safeArea: {
     flex: 1,
     backgroundColor: "#fff",
   },
+  mainContent: {
+    flex: 1,
+    backgroundColor: "#F5F5F5",
+  },
+  scrollContent: {
+    padding: 24,
+  },
+
+  // ENCABEZADO
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -274,12 +334,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#111",
-    marginLeft: 16, // Separación entre la flecha y el texto
+    marginLeft: 16,
   },
-  mainContent: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
+
+  // SELECTOR DE TABS (ROLES)
   tabsWrapper: {
     paddingHorizontal: 24,
     marginTop: 24, // Espacio entre el header y los tabs
@@ -307,9 +365,8 @@ const styles = StyleSheet.create({
     color: "#E8321E",
     fontWeight: "bold",
   },
-  scrollContent: {
-    padding: 24,
-  },
+
+  // FORMULARIO E INPUTS
   label: {
     fontSize: 14,
     color: "#555",
@@ -339,6 +396,7 @@ const styles = StyleSheet.create({
   passwordInput: {
     flex: 1,
     paddingVertical: 12,
+    paddingHorizontal: 0, // Corrije espacio de más
     fontSize: 16,
   },
   errorText: {
@@ -346,7 +404,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 12,
     marginTop: -4,
-  }, // Ajustado para que quede cerca de los inputs
+  },
+
+  // BOTONES Y ENLACES
   registerButton: {
     backgroundColor: "#E8321E",
     paddingVertical: 16,
