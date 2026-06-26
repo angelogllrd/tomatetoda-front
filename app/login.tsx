@@ -35,15 +35,30 @@ export default function LoginScreen() {
       setPassword("123456");
     } else {
       setEmail("carlos@demo.com");
-      setPassword("password123");
+      setPassword("123456");
     }
+  };
+
+  // Función de validación de email
+  const isValidEmail = (emailStr: string) => {
+    return /\S+@\S+\.\S+/.test(emailStr);
   };
 
   // Lógica de inicio de sesión con Laravel
   const handleLogin = async () => {
     setErrorMsg("");
+
+    // Validación de campos vacíos
     if (!email || !password) {
       setErrorMsg("Completá todos los campos.");
+      return;
+    }
+
+    // Validación de formato del email
+    if (!isValidEmail(email)) {
+      setErrorMsg(
+        "El correo electrónico debe ser una dirección de correo válida.",
+      );
       return;
     }
 
@@ -67,16 +82,15 @@ export default function LoginScreen() {
       // Redirección según el rol de la base de datos
       if (user.role === "organizador") {
         router.replace("/(tabs-org)/home-organizador");
-        // TODO: cambiar "bodega" por "proveedor" en BD
-      } else if (user.role === "bodega") {
+      } else if (user.role === "proveedor") {
         router.replace("/(tabs-prov)/home-proveedor");
       } else {
-        setErrorMsg("Rol no reconocido en la aplicación");
+        setErrorMsg("Rol no reconocido en la aplicación.");
       }
     } catch (error: any) {
       // Manejo de errores de Laravel (credenciales incorrectas)
       const mensaje =
-        error.response?.data?.message || "Error al conectar con el servidor";
+        error.response?.data?.message || "Error al conectar con el servidor.";
       setErrorMsg(mensaje);
     } finally {
       setIsLoading(false); // Se oculta spinner
@@ -283,6 +297,7 @@ const styles = StyleSheet.create({
   passwordInput: {
     flex: 1,
     paddingVertical: 12,
+    paddingHorizontal: 0,
     fontSize: 16,
   },
   errorText: {
