@@ -1,7 +1,9 @@
+import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Modal,
   ScrollView,
@@ -31,31 +33,35 @@ const MESES = [
 export default function PublicarEventoScreen() {
   const router = useRouter();
 
+  // ESTADOS DEL FORMULARIO
   const [nombre, setNombre] = useState("");
   const [lugar, setLugar] = useState("");
   const [personas, setPersonas] = useState("");
   const [descripcion, setDescripcion] = useState("");
 
-  // Estados para la fecha
+  // ESTADOS DE LA FECHA
   const [dia, setDia] = useState("");
   const [mes, setMes] = useState<{ id: number; nombre: string } | null>(null);
   const [anio, setAnio] = useState("");
-  const [modalMesVisible, setModalMesVisible] = useState(false);
 
+  // ESTADOS DE LA INTERFAZ
+  const [modalMesVisible, setModalMesVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   const clearError = () => setErrorMsg("");
 
-  const handlePublish = () => {
+  // LÓGICA DE PUBLICACIÓN (CONEXIÓN AL BACKEND)
+  const handlePublish = async () => {
     setErrorMsg("");
 
-    // 1. Validación de campos vacíos generales
+    // Validación de campos vacíos generales
     if (!nombre || !lugar || !personas || !descripcion) {
       setErrorMsg("Completá todos los campos");
       return;
     }
 
-    // 2. Validación de campos de fecha vacíos
+    // Validación de campos de fecha vacíos
     if (!dia || !mes || !anio) {
       setErrorMsg("Completá toda la fecha (Día, Mes y Año)");
       return;
@@ -63,16 +69,8 @@ export default function PublicarEventoScreen() {
 
     const diaNum = parseInt(dia, 10);
     const anioNum = parseInt(anio, 10);
-    const anioActual = new Date().getFullYear();
 
-    // YA SE VERIFICA EN EL ÚLTIMO CASO
-    // // 3. Validación del año (que tenga 4 dígitos y no sea del pasado)
-    // if (anio.length < 4 || anioNum < anioActual) {
-    //   setErrorMsg(`El año debe ser ${anioActual} o futuro`);
-    //   return;
-    // }
-
-    // 4. Validación matemática de días según el mes y año (calcula bisiestos automáticamente)
+    // Validación matemática de días según el mes y año (calcula bisiestos automáticamente)
     // En JavaScript, el día "0" del mes siguiente nos da el último día del mes actual.
     const diasDelMes = new Date(anioNum, mes.id, 0).getDate();
 
@@ -81,7 +79,7 @@ export default function PublicarEventoScreen() {
       return;
     }
 
-    // 5. Validación: La fecha completa no puede ser anterior a hoy
+    // Validación de fecha en el pasado
     // Nota: En JavaScript los meses van del 0 (Enero) al 11 (Diciembre), por eso restamos 1
     const fechaIngresada = new Date(anioNum, mes.id - 1, diaNum);
     const fechaHoy = new Date();
@@ -92,12 +90,39 @@ export default function PublicarEventoScreen() {
       return;
     }
 
-    // Si todo está ok, redirigimos
-    router.push("/confirmacion-publicacion");
+    // Formatear la fecha para Laravel (YYYY-MM-DD)
+    const diaFormateado = String(diaNum).padStart(2, "0"); // Rellena con 0 si no tiene longitud 2
+    const mesFormateado = String(mes.id).padStart(2, "0");
+    const fechaParaBackend = `${anioNum}-${mesFormateado}-${diaFormateado}`;
+
+    setIsLoading(true);
+
+    try {
+      // Petición POST al backend con los nombres de atributos en inglés (como en la BD)
+      await api.post("/events", {
+        title: nombre,
+        event_date: fechaParaBackend,
+        location: lugar,
+        guests_count: parseInt(personas, 10), // Aseguramos que sea un número entero
+        requirements: descripcion,
+      });
+
+      // Si se crea exitosamente, volvemos a la Home (o a la pantalla de confirmación)
+      // Como la Home tiene un useFocusEffect, recargará los eventos automáticamente
+      router.replace("/(tabs-org)/home-organizador");
+    } catch (error: any) {
+      const mensaje =
+        error.response?.data?.message ||
+        "Ocurrió un error al publicar el evento.";
+      setErrorMsg(mensaje);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+      {/* ENCABEZADO */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -113,6 +138,7 @@ export default function PublicarEventoScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* FORMULARIO PRINCIPAL */}
         <Text style={styles.label}>Nombre del evento</Text>
         <TextInput
           style={styles.input}
@@ -124,6 +150,7 @@ export default function PublicarEventoScreen() {
           }}
         />
 
+        {/* FILA DE FECHA PERSONALIZADA */}
         <Text style={styles.label}>Fecha del evento</Text>
         <View style={styles.dateRow}>
           {/* INPUT DÍA */}
@@ -167,6 +194,7 @@ export default function PublicarEventoScreen() {
           />
         </View>
 
+        {/* RESTO DEL FORMULARIO */}
         <Text style={styles.label}>Lugar</Text>
         <TextInput
           style={styles.input}
@@ -211,12 +239,21 @@ export default function PublicarEventoScreen() {
 
         {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
 
-        <TouchableOpacity style={styles.publishButton} onPress={handlePublish}>
-          <Text style={styles.publishButtonText}>Publicar evento</Text>
+        {/* BOTÓN DE ACCIÓN */}
+        <TouchableOpacity
+          style={styles.publishButton}
+          onPress={handlePublish}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.publishButtonText}>Publicar evento</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
 
-      {/* MODAL PARA SELECCIONAR EL MES (Diseño Plano) */}
+      {/* MODAL PARA SELECCIONAR EL MES */}
       <Modal visible={modalMesVisible} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -261,10 +298,21 @@ export default function PublicarEventoScreen() {
 }
 
 const styles = StyleSheet.create({
+  // CONTENEDORES PRINCIPALES
   safeArea: {
     flex: 1,
     backgroundColor: "#fff",
   },
+  mainContent: {
+    flex: 1,
+    backgroundColor: "#F5F5F5",
+  },
+  scrollContent: {
+    padding: 24,
+    paddingBottom: 40,
+  },
+
+  // ENCABEZADO
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -285,15 +333,7 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
 
-  mainContent: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-  scrollContent: {
-    padding: 24,
-    paddingBottom: 40,
-  },
-
+  // FORMULARIO Y TEXTOS
   labelContainer: {
     marginBottom: 8,
   },
@@ -308,7 +348,6 @@ const styles = StyleSheet.create({
     color: "#AAA",
     marginTop: -4,
   },
-
   input: {
     backgroundColor: "#fff",
     borderWidth: 1,
@@ -324,7 +363,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
 
-  /* ESTILOS NUEVOS PARA LA FILA DE FECHA */
+  // SELECTOR DE FECHA
   dateRow: {
     flexDirection: "row",
     gap: 8,
@@ -342,13 +381,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
 
+  // BOTONES Y ERRORES
   errorText: {
     color: "#C0392B",
     fontSize: 14,
     marginBottom: 16,
     marginTop: -4,
   },
-
   publishButton: {
     backgroundColor: "#E8321E",
     paddingVertical: 16,
@@ -362,7 +401,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 
-  /* ESTILOS DEL MODAL DE MESES (Flat design) */
+  // MODAL DE MESES (Flat Design)
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",

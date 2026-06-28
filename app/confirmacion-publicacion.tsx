@@ -26,7 +26,7 @@ export default function ConfirmacionPublicacionScreen() {
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push("/(tabs-org)/home-organizador")}
+          onPress={() => router.replace("/(tabs-org)/home-organizador")}
         >
           <Text style={styles.buttonText}>Ver mis eventos</Text>
         </TouchableOpacity>
@@ -36,6 +36,7 @@ export default function ConfirmacionPublicacionScreen() {
 }
 
 const styles = StyleSheet.create({
+  // CONTENEDORES PRINCIPALES
   safeArea: {
     flex: 1,
     backgroundColor: "#F5F5F5",
@@ -49,6 +50,11 @@ const styles = StyleSheet.create({
   iconContainer: {
     marginBottom: 24,
   },
+  footer: {
+    paddingBottom: 40,
+  },
+
+  // TEXTOS Y TIPOGRAFÍAS
   title: {
     fontSize: 24,
     fontWeight: "bold",
@@ -63,9 +69,8 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     paddingHorizontal: 20,
   },
-  footer: {
-    paddingBottom: 40,
-  },
+
+  // BOTONES
   button: {
     backgroundColor: "#E8321E",
     paddingVertical: 16,
