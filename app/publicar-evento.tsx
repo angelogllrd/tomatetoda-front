@@ -109,7 +109,7 @@ export default function PublicarEventoScreen() {
 
       // Si se crea exitosamente, volvemos a la Home (o a la pantalla de confirmación)
       // Como la Home tiene un useFocusEffect, recargará los eventos automáticamente
-      router.replace("/(tabs-org)/home-organizador");
+      router.replace("/confirmacion-publicacion");
     } catch (error: any) {
       const mensaje =
         error.response?.data?.message ||
