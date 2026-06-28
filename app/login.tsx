@@ -1,6 +1,6 @@
+import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Para guardar el token
-import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -13,9 +13,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-// IP LOCAL DE LA PC
-const API_URL = "http://192.168.100.4:8000/api";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -32,10 +29,10 @@ export default function LoginScreen() {
     setErrorMsg("");
     if (role === "org") {
       setEmail("maria@demo.com");
-      setPassword("123456");
+      setPassword("12345678");
     } else {
       setEmail("carlos@demo.com");
-      setPassword("123456");
+      setPassword("12345678");
     }
   };
 
@@ -66,7 +63,7 @@ export default function LoginScreen() {
 
     try {
       // Enviamos credenciales al backend
-      const respuesta = await axios.post(`${API_URL}/login`, {
+      const respuesta = await api.post("/login", {
         email: email.toLowerCase().trim(),
         password: password,
       });

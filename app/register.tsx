@@ -1,6 +1,6 @@
+import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -13,9 +13,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-// IP LOCAL DE LA PC
-const API_URL = "http://192.168.100.4:8000/api";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -87,7 +84,7 @@ export default function RegisterScreen() {
 
     try {
       // Petición POST al backend
-      const respuesta = await axios.post(`${API_URL}/register`, {
+      const respuesta = await api.post("/register", {
         name: name,
         email: email.toLowerCase().trim(),
         phone: phone,
