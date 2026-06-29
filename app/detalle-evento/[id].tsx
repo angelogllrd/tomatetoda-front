@@ -235,7 +235,7 @@ export default function DetalleEventoScreen() {
             <TouchableOpacity
               style={styles.contactButton}
               onPress={() =>
-                router.push(`/datos-proveedor/${acceptedOffer.user.id}`)
+                router.push(`/datos-proveedor/${acceptedOffer.id}`)
               }
             >
               <Text style={styles.contactButtonText}>

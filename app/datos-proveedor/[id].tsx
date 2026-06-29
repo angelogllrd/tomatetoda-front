@@ -1,23 +1,98 @@
+import api from "@/services/api";
 import { FontAwesome, Ionicons } from "@expo/vector-icons"; // Sumamos FontAwesome para el logo de WhatsApp
 import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
-    Linking,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+// Definimos la estructura de lo que nos devuelve el endpoint GET /offers/{id}
+type OfertaDetalle = {
+  id: number;
+  price: number;
+  description: string;
+  status: string;
+  event: {
+    id: number;
+    title: string;
+  };
+  user: {
+    id: number;
+    name: string;
+    company_name: string;
+    email: string;
+    phone: string;
+  };
+};
+
 export default function DatosProveedorScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams(); // Este es el ID de la OFERTA que recibimos
 
-  // Funciones usando Linking para abrir apps externas en base a los datos del Proveedor
-  const handleWhatsApp = () => Linking.openURL("https://wa.me/541155550003");
-  const handleLlamar = () => Linking.openURL("tel:+541155550003");
-  const handleEmail = () => Linking.openURL("mailto:carlos@demo.com");
+  const [offer, setOffer] = useState<OfertaDetalle | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOfferDetails = async () => {
+      try {
+        const response = await api.get(`/offers/${id}`);
+        setOffer(response.data.offer);
+      } catch (error) {
+        console.error("Error al cargar los datos del proveedor:", error);
+        Alert.alert("Error", "No se pudo cargar la información.");
+        router.back();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchOfferDetails();
+    }
+  }, [id]);
+
+  // LÓGICA DE BOTONES EXTERNOS (LINKING PARA ABRIR APP EXTERNAS)
+  const handleWhatsApp = () => {
+    if (!offer?.user?.phone) return;
+    // Limpiamos el número de espacios, guiones o signos raros para la URL de WhatsApp
+    const phone = offer.user.phone.replace(/[^0-9]/g, "");
+    Linking.openURL(`https://wa.me/${phone}`);
+  };
+
+  const handleLlamar = () => {
+    if (!offer?.user?.phone) return;
+    Linking.openURL(`tel:${offer.user.phone}`);
+  };
+
+  const handleEmail = () => {
+    if (!offer?.user?.email) return;
+    Linking.openURL(`mailto:${offer.user.email}`);
+  };
+
+  const formatearMoneda = (monto: number) => {
+    return "$" + monto.toLocaleString("es-AR");
+  };
+
+  if (isLoading || !offer) {
+    return (
+      <View
+        style={[
+          styles.safeArea,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#E8321E" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
@@ -42,34 +117,37 @@ export default function DatosProveedorScreen() {
 
           <View style={styles.eventRow}>
             <Text style={styles.eventLabel}>Evento: </Text>
-            <Text style={styles.eventValue}>Cumpleaños de Sofía</Text>
+            <Text style={styles.eventValue}>{offer.event.title}</Text>
           </View>
 
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Precio acordado</Text>
-            <Text style={styles.priceValue}>$38.500</Text>
-          </View>
-
-          <View style={styles.detailsBox}>
-            <Text style={styles.detailsText}>
-              Oferta completa con reposición en el evento. Marcas premium
-              garantizadas.
+            <Text style={styles.priceValue}>
+              {formatearMoneda(offer.price)}
             </Text>
           </View>
+
+          {offer.description ? (
+            <View style={styles.detailsBox}>
+              <Text style={styles.detailsText}>{offer.description}</Text>
+            </View>
+          ) : null}
         </View>
 
         {/* TARJETA DE DATOS DEL PROVEEDOR */}
         <View style={styles.providerCard}>
           <View style={styles.providerHeader}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>A</Text>
+              <Text style={styles.avatarText}>
+                {offer.user.name.charAt(0).toUpperCase()}
+              </Text>
             </View>
-            <View>
-              <Text style={styles.providerName}>Ana Martínez</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.providerName}>{offer.user.name}</Text>
               <View style={styles.companyRow}>
                 <Ionicons name="business-outline" size={14} color="#AAA" />
                 <Text style={styles.providerCompany}>
-                  Distribuidora Norte S.A.
+                  {offer.user.company_name}
                 </Text>
               </View>
             </View>
@@ -83,7 +161,7 @@ export default function DatosProveedorScreen() {
             <Ionicons name="call-outline" size={20} color="#AAA" />
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.contactInfoLabel}>Teléfono</Text>
-              <Text style={styles.contactInfoValue}>+54 11 5555-0004</Text>
+              <Text style={styles.contactInfoValue}>{offer.user.phone}</Text>
             </View>
           </View>
 
@@ -91,7 +169,7 @@ export default function DatosProveedorScreen() {
             <Ionicons name="mail-outline" size={20} color="#AAA" />
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.contactInfoLabel}>Email</Text>
-              <Text style={styles.contactInfoValue}>ana@demo.com</Text>
+              <Text style={styles.contactInfoValue}>{offer.user.email}</Text>
             </View>
           </View>
         </View>
@@ -160,6 +238,7 @@ export default function DatosProveedorScreen() {
 }
 
 const styles = StyleSheet.create({
+  // CONTENEDORES PRINCIPALES
   safeArea: {
     flex: 1,
     backgroundColor: "#F5F5F5",
@@ -183,12 +262,12 @@ const styles = StyleSheet.create({
     color: "#111",
     marginLeft: 16,
   },
-
   scrollContent: {
     padding: 24,
     paddingBottom: 40,
   },
 
+  // TARJETA DE OFERTA
   acceptedCard: {
     backgroundColor: "#fff",
     padding: 20,
@@ -212,6 +291,7 @@ const styles = StyleSheet.create({
     color: "#666",
   },
   eventValue: {
+    // flex: 1,
     fontSize: 16,
     fontWeight: "bold",
     color: "#111",
@@ -242,6 +322,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
+  // TARJETA DEL PROVEEDOR
   providerCard: {
     backgroundColor: "#fff",
     padding: 20,
@@ -314,6 +395,7 @@ const styles = StyleSheet.create({
     color: "#111",
   },
 
+  // BOTONES
   actionButton: {
     flexDirection: "row",
     justifyContent: "center",
@@ -341,6 +423,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
+  // RECORDATORIO
   reminderBox: {
     backgroundColor: "#fff",
     borderColor: "#E5E5E5",
