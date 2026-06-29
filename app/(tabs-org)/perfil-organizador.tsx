@@ -1,6 +1,10 @@
+import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,25 +13,80 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+// TIPO DE DATOS DEL USUARIO
+type UserProfile = {
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+};
+
 export default function PerfilOrganizadorScreen() {
   const router = useRouter();
 
-  const handleLogout = () => {
-    // Acá en el futuro borraríamos el Token guardado en el celular
-    // Por ahora solo lo mandamos al login de vuelta
-    router.replace("/login");
+  // ESTADOS
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // OBTENER DATOS DEL BACKEND
+  const fetchUserData = async () => {
+    try {
+      const response = await api.get("/user");
+      setUser(response.data);
+    } catch (error) {
+      console.error("Error al cargar el perfil:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+    }, []),
+  );
+
+  // LÓGICA DE CERRAR SESIÓN
+  const handleLogout = async () => {
+    try {
+      // Le avisamos a Laravel que destruya el token en la base de datos
+      await api.post("/logout");
+    } catch (error) {
+      console.error("Error cerrando sesión en el servidor:", error);
+    } finally {
+      // Pase lo que pase, borramos el token del celular y lo mandamos al login
+      await AsyncStorage.removeItem("token");
+      router.replace("/login");
+    }
+  };
+
+  if (isLoading || !user) {
+    return (
+      <View
+        style={[
+          styles.safeArea,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#E8321E" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       {/* HEADER CON AVATAR */}
       <View style={styles.header}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>J</Text>
+          <Text style={styles.avatarText}>
+            {user.name.charAt(0).toUpperCase()}
+          </Text>
         </View>
         <View style={styles.headerTextContainer}>
-          <Text style={styles.name}>Juan García</Text>
-          <Text style={styles.role}>Organizador/a</Text>
+          <Text style={styles.name}>{user.name}</Text>
+          <Text style={styles.role}>
+            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+          </Text>
         </View>
       </View>
 
@@ -46,7 +105,7 @@ export default function PerfilOrganizadorScreen() {
             />
             <View>
               <Text style={styles.infoLabel}>Nombre</Text>
-              <Text style={styles.infoValue}>Juan García</Text>
+              <Text style={styles.infoValue}>{user.name}</Text>
             </View>
           </View>
 
@@ -61,7 +120,7 @@ export default function PerfilOrganizadorScreen() {
             />
             <View>
               <Text style={styles.infoLabel}>Email</Text>
-              <Text style={styles.infoValue}>juan@gmail.com</Text>
+              <Text style={styles.infoValue}>{user.email}</Text>
             </View>
           </View>
 
@@ -76,7 +135,9 @@ export default function PerfilOrganizadorScreen() {
             />
             <View>
               <Text style={styles.infoLabel}>Teléfono</Text>
-              <Text style={styles.infoValue}>+54 3624 111222</Text>
+              <Text style={styles.infoValue}>
+                {user.phone || "No especificado"}
+              </Text>
             </View>
           </View>
         </View>
@@ -97,11 +158,17 @@ export default function PerfilOrganizadorScreen() {
 }
 
 const styles = StyleSheet.create({
+  // CONTENEDORES PRINCIPALES
   safeArea: {
     flex: 1,
     backgroundColor: "#F5F5F5",
   },
+  scrollContent: {
+    padding: 24,
+    paddingBottom: 40,
+  },
 
+  // ENCABEZADO Y AVATAR
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -139,11 +206,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  scrollContent: {
-    padding: 24,
-    paddingBottom: 40,
-  },
-
+  // TARJETAS DE INFORMACIÓN
   card: {
     backgroundColor: "#fff",
     borderRadius: 8,
@@ -174,6 +237,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#EAEAEA",
   },
 
+  // BOTONES
   logoutButton: {
     flexDirection: "row",
     backgroundColor: "#fff",
