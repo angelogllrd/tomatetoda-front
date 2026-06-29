@@ -1,7 +1,10 @@
+import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,83 +13,134 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Simulamos los datos que vendrían del backend para este evento específico
-const mockEventData = {
-  title: "Cumpleaños de Sofía",
-  date: "15 de julio de 2026",
-  location: "Av. Corrientes 1234, CABA",
-  people: 50,
-  description:
-    "2 cajones de cerveza, 20 gaseosas variadas, 10 jugos, agua mineral para todos.",
-  initialStatus: "Abierto", // cambiar a "Cerrado" para ver detalle de evento caducado
+// TIPOS DE DATOS (basados en la base de datos)
+type Proveedor = {
+  id: number;
+  name: string;
+  company_name: string;
+  email: string;
+  phone: string;
 };
 
-const mockOffersData = [
-  {
-    id: "o1",
-    providerName: "Ana Martínez",
-    company: "Distribuidora Norte S.A.",
-    amount: "$38.500",
-    details:
-      "Oferta completa con reposición en el evento. Marcas premium garantizadas.",
-    status: "Pendiente",
-  },
-  {
-    id: "o2",
-    providerName: "Carlos Rodríguez",
-    company: "Bebidas del Sur SRL",
-    amount: "$45.000",
-    details: "",
-    status: "Rechazada",
-  },
-];
+type Oferta = {
+  id: number;
+  price: number;
+  description: string;
+  status: "pendiente" | "aceptada" | "rechazada" | "caducada";
+  user: Proveedor;
+};
+
+type EventoDetalle = {
+  id: number;
+  title: string;
+  event_date: string;
+  location: string;
+  guests_count: number;
+  requirements: string;
+  status: "abierto" | "cerrado";
+  offers: Oferta[];
+};
 
 export default function DetalleEventoScreen() {
   const router = useRouter();
   // Este hook extrae el ID de la URL (ej: /detalle-evento/1)
   const { id } = useLocalSearchParams();
 
-  const [eventStatus, setEventStatus] = useState(mockEventData.initialStatus);
-  const [offers, setOffers] = useState(mockOffersData);
-  // const [offers, setOffers] = useState([]); // para probar estado sin ofertas
-  const [confirmingOfferId, setConfirmingOfferId] = useState<string | null>(
+  // ESTADOS DE LA PANTALLA
+  const [event, setEvent] = useState<EventoDetalle | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAccepting, setIsAccepting] = useState(false);
+  const [confirmingOfferId, setConfirmingOfferId] = useState<number | null>(
     null,
   );
 
-  // Función para confirmar una oferta
-  const handleConfirmAccept = (offerId: string) => {
-    // 1. Cambiamos el estado del evento a Cerrado
-    setEventStatus("Cerrado");
-
-    // 2. Aceptamos esta oferta y filtramos/rechazamos las demás
-    const updatedOffers = offers.map((offer) => {
-      if (offer.id === offerId) {
-        return { ...offer, status: "Aceptada" };
-      }
-      return { ...offer, status: "Rechazada" };
-    });
-
-    setOffers(updatedOffers);
-    setConfirmingOfferId(null);
+  // OBTENER DATOS DEL BACKEND
+  const fetchEventDetails = async () => {
+    try {
+      const response = await api.get(`/events/${id}`);
+      setEvent(response.data.event);
+    } catch (error) {
+      console.error("Error al cargar el evento:", error);
+      Alert.alert("Error", "No se pudo cargar el detalle del evento.");
+      router.back();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Función para rechazar una oferta
-  const handleRejectOffer = (offerId: string) => {
-    const updatedOffers = offers.map((offer) => {
-      if (offer.id === offerId) {
-        return { ...offer, status: "Rechazada" };
-      }
-      return offer;
-    });
-    setOffers(updatedOffers);
+  useFocusEffect(
+    useCallback(() => {
+      fetchEventDetails();
+    }, [id]),
+  );
+
+  // ACCIONES
+  const handleConfirmAccept = async (offerId: number) => {
+    setIsAccepting(true);
+    try {
+      // Llamamos al endpoint de OfferController para aceptar la oferta y rechazar las demás
+      await api.put(`/offers/${offerId}/accept`);
+      setConfirmingOfferId(null);
+      // Recargamos el evento para que traiga los estados actualizados (cerrado)
+      await fetchEventDetails();
+    } catch (error) {
+      console.error("Error al aceptar oferta:", error);
+      Alert.alert("Error", "Ocurrió un error al aceptar la oferta.");
+    } finally {
+      setIsAccepting(false);
+    }
   };
 
-  const pendingOffers = offers.filter((o) => o.status === "Pendiente");
-  const rejectedOffers = offers.filter((o) => o.status === "Rechazada");
-  const acceptedOffer = offers.find((o) => o.status === "Aceptada");
+  // Función para rechazar oferta
+  const handleRejectOffer = async (offerId: number) => {
+    try {
+      // Le avisamos a la base de datos
+      await api.put(`/offers/${offerId}/reject`);
 
-  // NUEVO: Simulamos si el evento caducó (En la vida real esto lo calcularías comparando la fecha de hoy con mockEventData.date)
-  const isExpired = true; // Cambiá esto a 'true' para probar la pantalla de caducado
+      // Recargamos la pantalla para que la oferta baje a la sección "Rechazadas"
+      await fetchEventDetails();
+    } catch (error) {
+      console.error("Error al rechazar oferta:", error);
+      Alert.alert("Error", "Ocurrió un error al rechazar la oferta.");
+    }
+  };
+
+  // FORMATEADORES
+  const formatearFecha = (fechaString: string) => {
+    const [year, month, day] = fechaString.split("-");
+    const meses = [
+      "enero",
+      "febrero",
+      "marzo",
+      "abril",
+      "mayo",
+      "junio",
+      "julio",
+      "agosto",
+      "septiembre",
+      "octubre",
+      "noviembre",
+      "diciembre",
+    ];
+    return `${day} de ${meses[parseInt(month, 10) - 1]} de ${year}`;
+  };
+
+  const formatearMoneda = (monto: number) => {
+    return "$" + monto.toLocaleString("es-AR");
+  };
+
+  if (isLoading || !event) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#E8321E" />
+      </View>
+    );
+  }
+
+  // FILTROS DE OFERTAS
+  const pendingOffers = event.offers.filter((o) => o.status === "pendiente");
+  const rejectedOffers = event.offers.filter((o) => o.status === "rechazada");
+  const acceptedOffer = event.offers.find((o) => o.status === "aceptada");
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
@@ -99,17 +153,17 @@ export default function DetalleEventoScreen() {
           <Ionicons name="arrow-back" size={24} color="#111" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          {mockEventData.title}
+          {event.title}
         </Text>
         <Text
           style={[
             styles.statusBadge,
-            eventStatus === "Cerrado"
+            event.status === "cerrado"
               ? styles.statusBadgeClosed
               : styles.statusBadgeOpen,
           ]}
         >
-          {eventStatus}
+          {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
         </Text>
       </View>
 
@@ -128,7 +182,9 @@ export default function DetalleEventoScreen() {
               color="#666"
               style={styles.infoIcon}
             />
-            <Text style={styles.infoText}>{mockEventData.date}</Text>
+            <Text style={styles.infoText}>
+              {formatearFecha(event.event_date)}
+            </Text>
           </View>
           <View style={styles.infoRow}>
             <Ionicons
@@ -137,7 +193,7 @@ export default function DetalleEventoScreen() {
               color="#666"
               style={styles.infoIcon}
             />
-            <Text style={styles.infoText}>{mockEventData.location}</Text>
+            <Text style={styles.infoText}>{event.location}</Text>
           </View>
           <View style={styles.infoRow}>
             <Ionicons
@@ -146,39 +202,41 @@ export default function DetalleEventoScreen() {
               color="#666"
               style={styles.infoIcon}
             />
-            <Text style={styles.infoText}>{mockEventData.people} personas</Text>
+            <Text style={styles.infoText}>{event.guests_count} personas</Text>
           </View>
 
           <View style={styles.divider} />
 
           <Text style={styles.descriptionLabel}>Bebidas solicitadas</Text>
-          <Text style={styles.descriptionText}>
-            {mockEventData.description}
-          </Text>
+          <Text style={styles.descriptionText}>{event.requirements}</Text>
         </View>
 
-        {/* SECCIÓN DE OFERTAS)
-        ------------------------ */}
+        {/* SECCIÓN DE ESTADOS Y OFERTAS
+        -------------------------------- */}
 
-        {eventStatus === "Cerrado" && acceptedOffer ? (
+        {event.status === "cerrado" && acceptedOffer ? (
           /* 1. ESTADO: OFERTA ACEPTADA (ÉXITO) */
           <View style={styles.acceptedOfferCard}>
             <Text style={styles.acceptedOfferTag}>Oferta aceptada</Text>
             <View style={styles.offerHeaderRow}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.providerName}>
-                  {acceptedOffer.providerName}
+                  {acceptedOffer.user.name}
                 </Text>
                 <Text style={styles.providerCompany}>
-                  {acceptedOffer.company}
+                  {acceptedOffer.user.company_name}
                 </Text>
               </View>
-              <Text style={styles.acceptedAmount}>{acceptedOffer.amount}</Text>
+              <Text style={styles.acceptedAmount}>
+                {formatearMoneda(acceptedOffer.price)}
+              </Text>
             </View>
 
             <TouchableOpacity
               style={styles.contactButton}
-              onPress={() => router.push(`/datos-proveedor/${id}`)}
+              onPress={() =>
+                router.push(`/datos-proveedor/${acceptedOffer.user.id}`)
+              }
             >
               <Text style={styles.contactButtonText}>
                 Ver datos de contacto
@@ -191,8 +249,8 @@ export default function DetalleEventoScreen() {
               />
             </TouchableOpacity>
           </View>
-        ) : eventStatus === "Cerrado" && !acceptedOffer ? (
-          /* ESTADO VACÍO: EVENTO CADUCADO */
+        ) : event.status === "cerrado" && !acceptedOffer ? (
+          /* 2. ESTADO VACÍO: EVENTO CADUCADO */
           <View style={styles.expiredStateCard}>
             <Text style={styles.expiredTitle}>Evento caducado</Text>
             <Text style={styles.expiredSub}>
@@ -200,7 +258,7 @@ export default function DetalleEventoScreen() {
               oferta
             </Text>
           </View>
-        ) : offers.length === 0 ? (
+        ) : event.offers.length === 0 ? (
           /* 3. ESTADO: ESPERANDO OFERTAS (VACÍO) */
           <View style={styles.emptyOffersState}>
             <Text style={styles.emptyOffersTitle}>Esperando ofertas</Text>
@@ -228,7 +286,7 @@ export default function DetalleEventoScreen() {
                     <View style={styles.offerHeaderRow}>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.providerName}>
-                          {offer.providerName}
+                          {offer.user.name}
                         </Text>
                         <View style={styles.companyRow}>
                           <Ionicons
@@ -237,18 +295,22 @@ export default function DetalleEventoScreen() {
                             color="#AAA"
                           />
                           <Text style={styles.providerCompany}>
-                            {offer.company}
+                            {offer.user.company_name}
                           </Text>
                         </View>
                       </View>
-                      <Text style={styles.offerAmount}>{offer.amount}</Text>
-                    </View>
-
-                    <View style={styles.offerDetailsBox}>
-                      <Text style={styles.offerDetailsText}>
-                        {offer.details}
+                      <Text style={styles.offerAmount}>
+                        {formatearMoneda(offer.price)}
                       </Text>
                     </View>
+
+                    {offer.description ? (
+                      <View style={styles.offerDetailsBox}>
+                        <Text style={styles.offerDetailsText}>
+                          {offer.description}
+                        </Text>
+                      </View>
+                    ) : null}
 
                     {/* Se presionó "Aceptar oferta", confirmingOfferId tiene el id de la
                 oferta aceptada, y es la que estoy viendo -> pido confirmación */}
@@ -261,6 +323,7 @@ export default function DetalleEventoScreen() {
                           <TouchableOpacity
                             style={[styles.actionButton, styles.cancelButton]}
                             onPress={() => setConfirmingOfferId(null)}
+                            disabled={isAccepting}
                           >
                             <Text style={styles.cancelButtonText}>
                               Cancelar
@@ -269,10 +332,15 @@ export default function DetalleEventoScreen() {
                           <TouchableOpacity
                             style={[styles.actionButton, styles.confirmButton]}
                             onPress={() => handleConfirmAccept(offer.id)}
+                            disabled={isAccepting}
                           >
-                            <Text style={styles.confirmButtonText}>
-                              Confirmar
-                            </Text>
+                            {isAccepting ? (
+                              <ActivityIndicator size="small" color="#fff" />
+                            ) : (
+                              <Text style={styles.confirmButtonText}>
+                                Confirmar
+                              </Text>
+                            )}
                           </TouchableOpacity>
                         </View>
                       </View>
@@ -321,13 +389,15 @@ export default function DetalleEventoScreen() {
                   <View key={offer.id} style={styles.rejectedCard}>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.rejectedProviderName}>
-                        {offer.providerName}
+                        {offer.user.name}
                       </Text>
                       <Text style={styles.rejectedProviderCompany}>
-                        {offer.company}
+                        {offer.user.company_name}
                       </Text>
                     </View>
-                    <Text style={styles.rejectedAmount}>{offer.amount}</Text>
+                    <Text style={styles.rejectedAmount}>
+                      {formatearMoneda(offer.price)}
+                    </Text>
                   </View>
                 ))}
               </>
@@ -340,11 +410,23 @@ export default function DetalleEventoScreen() {
 }
 
 const styles = StyleSheet.create({
+  // CONTENEDORES PRINCIPALES
   safeArea: {
     flex: 1,
     backgroundColor: "#F5F5F5",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+  },
+  scrollContent: {
+    padding: 24,
+    paddingBottom: 40,
+  },
 
+  // HEADER
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -377,11 +459,7 @@ const styles = StyleSheet.create({
     color: "#999",
   },
 
-  scrollContent: {
-    padding: 24,
-    paddingBottom: 40,
-  },
-
+  // TARJETA DE DETALLES DEL EVENTO
   detailsCard: {
     backgroundColor: "#fff",
     padding: 20,
@@ -425,6 +503,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
 
+  // ENCABEZADOS DE SECCIÓN
   offersSectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -441,6 +520,7 @@ const styles = StyleSheet.create({
     color: "#888",
   },
 
+  // TARJETAS DE OFERTAS PENDIENTES
   offerCard: {
     backgroundColor: "#fff",
     padding: 20,
@@ -475,7 +555,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#E8321E",
   },
-
   offerDetailsBox: {
     backgroundColor: "#F8F8F8",
     padding: 16,
@@ -488,6 +567,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
+  // BOTONES DE ACCIÓN (ACEPTAR / RECHAZAR)
   actionButtonsRow: {
     flexDirection: "row",
     gap: 12,
@@ -520,6 +600,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 
+  // CAJA DE CONFIRMACIÓN
   confirmBox: {
     marginTop: 8,
   },
@@ -552,6 +633,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 
+  // TARJETAS DE OFERTAS RECHAZADAS
   rejectedSectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
@@ -585,6 +667,7 @@ const styles = StyleSheet.create({
     color: "#bbb",
   },
 
+  // ESTADO: OFERTA ACEPTADA
   acceptedOfferCard: {
     backgroundColor: "#fff",
     padding: 20,
@@ -619,6 +702,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 
+  // ESTADO: ESPERANDO OFERTAS (VACÍO)
   emptyOffersState: {
     backgroundColor: "#fff",
     paddingVertical: 40,
@@ -641,6 +725,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
+  // ESTADO: EVENTO CADUCADO
   expiredStateCard: {
     backgroundColor: "#FAFAFA",
     paddingVertical: 40,
