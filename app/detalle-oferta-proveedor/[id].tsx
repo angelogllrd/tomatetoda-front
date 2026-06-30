@@ -1,109 +1,121 @@
+import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Simulamos una base de datos que cruza los datos del evento con tu oferta
-const mockOffersDetail = {
-  o1: {
-    eventName: "Tech Summit 2026",
-    organizer: "Sofía Martínez",
-    eventDate: "25 de junio de 2026",
-    location: "Hotel Sheraton, Retiro",
-    people: 80,
-    requested:
-      "Agua mineral sin gas (50u), jugos naturales, gaseosas light, 2 cajones de cerveza.",
-    offerPrice: "$62.000",
-    offerDetail:
-      "Agua Villavicencio x50, jugos Ades, Sprite Zero x24, Heineken x2 cajones. Entrega incluida en el precio.",
-    status: "Aceptada",
-  },
-  o2: {
-    eventName: "Casamiento García-López",
-    organizer: "María González",
-    eventDate: "20 de agosto de 2026",
-    location: "Salón Los Jardines, Palermo",
-    people: 150,
-    requested:
-      "Vinos finos, champagne para el brindis (20 botellas), cerveza artesanal y gaseosas.",
-    offerPrice: "$185.000",
-    offerDetail:
-      "Paquete premium: vinos Rutini, Chandon para brindis, cervezas artesanales Antares y Coca-Cola.",
-    status: "Pendiente",
-  },
-  o3: {
-    eventName: "Cumpleaños de Sofía",
-    organizer: "María González",
-    eventDate: "15 de julio de 2026",
-    location: "Av. Corrientes 1234, CABA",
-    people: 50,
-    requested:
-      "2 cajones de cerveza, 20 gaseosas variadas, 10 jugos, agua mineral para todos.",
-    offerPrice: "$45.000",
-    offerDetail:
-      "Incluye delivery y refrigeración. 2 cajones Quilmes, 20 sodas variadas, 10 jugos Cepita, 50 aguas.",
-    status: "Rechazada",
-  },
-  o4: {
-    eventName: "Despedida de Soltero Lucas",
-    organizer: "Juan Pérez",
-    eventDate: "3 de mayo de 2026",
-    location: "Bar El Refugio, San Telmo",
-    people: 30,
-    requested:
-      "Cerveza tirada, fernet con cola, aguas y gaseosas para una noche larga.",
-    offerPrice: "$28.000",
-    offerDetail:
-      "Cerveza Quilmes tirada x2 choperas, fernet Branca 2L x3, Coca-Cola x12, aguas y sodas. Retiro al día siguiente.",
-    status: "Caducada",
-  },
+// TIPO DE DATOS
+type OfferDetail = {
+  id: number;
+  price: number;
+  description: string;
+  status: "pendiente" | "aceptada" | "rechazada" | "caducada";
+  event: {
+    id: number;
+    title: string;
+    event_date: string;
+    location: string;
+    guests_count: number;
+    requirements: string;
+    user: {
+      name: string;
+    };
+  };
 };
 
 export default function DetalleOfertaProveedorScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
 
-  // En la vida real, acá harías un fetch() a tu backend usando el ID.
-  // Por ahora lo leemos de nuestro objeto simulado. (Usamos 'o2' como fallback por si entra sin ID válido)
-  const data =
-    mockOffersDetail[id as keyof typeof mockOffersDetail] ||
-    mockOffersDetail["o2"];
+  // ESTADOS
+  const [offer, setOffer] = useState<OfferDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Función dinámica para el color de la etiqueta
+  // CARGAR DATOS
+  useEffect(() => {
+    const fetchOfferDetails = async () => {
+      try {
+        const response = await api.get(`/offers/${id}`);
+        setOffer(response.data.offer);
+      } catch (error) {
+        console.error("Error cargando detalle de la oferta:", error);
+        Alert.alert("Error", "No se pudo cargar la información de la oferta.");
+        router.back();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) fetchOfferDetails();
+  }, [id]);
+
+  // FORMATEADORES
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Aceptada":
+      case "aceptada":
         return "#16A34A"; // Verde
-      case "Pendiente":
+      case "pendiente":
         return "#B45309"; // Naranja
-      case "Rechazada":
+      case "rechazada":
         return "#AAA"; // Gris
-      case "Caducada":
+      case "caducada":
         return "#AAA"; // Gris
       default:
         return "#333";
     }
   };
 
+  const getStatusText = (status: string) => {
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
+  const formatearFecha = (fechaString: string) => {
+    const [year, month, day] = fechaString.split("-");
+    const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    return `${parseInt(day, 10)} de ${meses[parseInt(month, 10) - 1]} de ${year}`;
+  };
+
+  const formatearMoneda = (monto: number) => {
+    return "$" + monto.toLocaleString("es-AR");
+  };
+
+  if (isLoading || !offer) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator
+          size="large"
+          color="#E8321E"
+        />
+      </View>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={["top", "bottom"]}
+    >
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color="#111" />
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color="#111"
+          />
         </TouchableOpacity>
         <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle}>{data.eventName}</Text>
-          <Text style={styles.headerSubtitle}>Organiza: {data.organizer}</Text>
+          <Text
+            style={styles.headerTitle}
+            numberOfLines={1}
+          >
+            {offer.event.title}
+          </Text>
+          <Text style={styles.headerSubtitle}>Organiza: {offer.event.user?.name || "Organizador"}</Text>
         </View>
       </View>
 
@@ -115,16 +127,28 @@ export default function DetalleOfertaProveedorScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionTag}>DETALLES DEL EVENTO</Text>
           <View style={styles.detailRow}>
-            <Ionicons name="calendar-outline" size={20} color="#AAA" />
-            <Text style={styles.detailText}>{data.eventDate}</Text>
+            <Ionicons
+              name="calendar-outline"
+              size={20}
+              color="#AAA"
+            />
+            <Text style={styles.detailText}>{formatearFecha(offer.event.event_date)}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Ionicons name="location-outline" size={20} color="#AAA" />
-            <Text style={styles.detailText}>{data.location}</Text>
+            <Ionicons
+              name="location-outline"
+              size={20}
+              color="#AAA"
+            />
+            <Text style={styles.detailText}>{offer.event.location}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Ionicons name="people-outline" size={20} color="#AAA" />
-            <Text style={styles.detailText}>{data.people} personas</Text>
+            <Ionicons
+              name="people-outline"
+              size={20}
+              color="#AAA"
+            />
+            <Text style={styles.detailText}>{offer.event.guests_count} personas</Text>
           </View>
         </View>
 
@@ -132,51 +156,37 @@ export default function DetalleOfertaProveedorScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionTag}>BEBIDAS SOLICITADAS</Text>
           <View style={styles.descriptionBox}>
-            <Text style={styles.descriptionText}>{data.requested}</Text>
+            <Text style={styles.descriptionText}>{offer.event.requirements}</Text>
           </View>
-          <Text style={styles.footerNote}>
-            Tu oferta debe cubrir todos los items listados.
-          </Text>
+          <Text style={styles.footerNote}>Tu oferta debe cubrir todos los items listados.</Text>
         </View>
 
-        {/* MI OFERTA (La tarjeta protagonista) */}
+        {/* MI OFERTA */}
         {/* Si está aceptada, le sumamos el estilo 'acceptedCard' para el borde verde */}
-        <View
-          style={[
-            styles.card,
-            data.status === "Aceptada" && styles.acceptedCard,
-          ]}
-        >
+        <View style={[styles.card, offer.status === "aceptada" && styles.acceptedCard]}>
           <View style={styles.offerHeaderRow}>
             <Text style={styles.offerTitle}>Mi oferta</Text>
-            <Text
-              style={[
-                styles.statusBadge,
-                { color: getStatusColor(data.status) },
-              ]}
-            >
-              {data.status}
-            </Text>
+            <Text style={[styles.statusBadge, { color: getStatusColor(offer.status) }]}>{getStatusText(offer.status)}</Text>
           </View>
 
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Precio ofertado</Text>
-            <Text style={styles.priceValue}>{data.offerPrice}</Text>
+            <Text style={styles.priceValue}>{formatearMoneda(offer.price)}</Text>
           </View>
 
-          <View style={styles.descriptionBox}>
-            <Text style={styles.descriptionText}>{data.offerDetail}</Text>
-          </View>
+          {offer.description ? (
+            <View style={styles.descriptionBox}>
+              <Text style={styles.descriptionText}>{offer.description}</Text>
+            </View>
+          ) : null}
 
           {/* BOTÓN CONDICIONAL */}
-          {data.status === "Aceptada" && (
+          {offer.status === "aceptada" && (
             <TouchableOpacity
               style={styles.contactButton}
               onPress={() => router.push(`/datos-organizador/${id}` as any)}
             >
-              <Text style={styles.contactButtonText}>
-                Ver datos del organizador
-              </Text>
+              <Text style={styles.contactButtonText}>Ver datos del organizador</Text>
               <Ionicons
                 name="chevron-forward"
                 size={18}
@@ -194,6 +204,12 @@ export default function DetalleOfertaProveedorScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    backgroundColor: "#F5F5F5",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "#F5F5F5",
   },
 

@@ -1,33 +1,100 @@
+import api from "@/services/api";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import {
-    Linking,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+// TIPO DE DATOS
+type OfferDetail = {
+  id: number;
+  price: number;
+  description: string;
+  status: string;
+  event: {
+    id: number;
+    title: string;
+    user: {
+      name: string;
+      email: string;
+      phone: string;
+    };
+  };
+};
 
 export default function DatosOrganizadorScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
 
-  // Funciones usando Linking para abrir apps externas
-  const handleWhatsApp = () => Linking.openURL("https://wa.me/541155550002");
-  const handleLlamar = () => Linking.openURL("tel:+541155550002");
-  const handleEmail = () => Linking.openURL("mailto:juan@demo.com");
+  const [offer, setOffer] = useState<OfferDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // CARGAR DATOS
+  useEffect(() => {
+    const fetchOfferDetails = async () => {
+      try {
+        const response = await api.get(`/offers/${id}`);
+        setOffer(response.data.offer);
+      } catch (error) {
+        console.error("Error al cargar los datos del organizador:", error);
+        Alert.alert("Error", "No se pudo cargar la información.");
+        router.back();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) fetchOfferDetails();
+  }, [id]);
+
+  // LÓGICA DE BOTONES EXTERNOS (LINKING)
+  const handleWhatsApp = () => {
+    if (!offer?.event.user.phone) return;
+    const phone = offer.event.user.phone.replace(/[^0-9]/g, "");
+    Linking.openURL(`https://wa.me/${phone}`);
+  };
+
+  const handleLlamar = () => {
+    if (!offer?.event.user.phone) return;
+    Linking.openURL(`tel:${offer.event.user.phone}`);
+  };
+
+  const handleEmail = () => {
+    if (!offer?.event.user.email) return;
+    Linking.openURL(`mailto:${offer.event.user.email}`);
+  };
+
+  const formatearMoneda = (monto: number) => {
+    return "$" + monto.toLocaleString("es-AR");
+  };
+
+  if (isLoading || !offer) {
+    return (
+      <View style={[styles.safeArea, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator
+          size="large"
+          color="#E8321E"
+        />
+      </View>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={["top", "bottom"]}
+    >
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color="#111" />
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color="#111"
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Datos del organizador</Text>
       </View>
@@ -42,33 +109,30 @@ export default function DatosOrganizadorScreen() {
 
           <View style={styles.eventRow}>
             <Text style={styles.eventLabel}>Evento: </Text>
-            <Text style={styles.eventValue}>Tech Summit 2026</Text>
+            <Text style={styles.eventValue}>{offer.event.title}</Text>
           </View>
 
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Tu precio aceptado</Text>
-            <Text style={styles.priceValue}>$62.000</Text>
+            <Text style={styles.priceValue}>{formatearMoneda(offer.price)}</Text>
           </View>
 
-          <View style={styles.detailsBox}>
-            <Text style={styles.detailsText}>
-              Agua Villavicencio x50, jugos Ades, Sprite Zero x24, Heineken x2
-              cajones. Entrega incluida.
-            </Text>
-          </View>
+          {offer.description ? (
+            <View style={styles.detailsBox}>
+              <Text style={styles.detailsText}>{offer.description}</Text>
+            </View>
+          ) : null}
         </View>
 
         {/* TARJETA DE DATOS DEL ORGANIZADOR */}
         <View style={styles.providerCard}>
           <View style={styles.providerHeader}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>J</Text>
+              <Text style={styles.avatarText}>{offer.event.user.name.charAt(0).toUpperCase()}</Text>
             </View>
-            <View>
-              <Text style={styles.providerName}>Juan Pérez</Text>
-              <Text style={styles.providerCompany}>
-                Organizador/a del evento
-              </Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.providerName}>{offer.event.user.name}</Text>
+              <Text style={styles.providerCompany}>Organizador/a del evento</Text>
             </View>
           </View>
 
@@ -77,18 +141,26 @@ export default function DatosOrganizadorScreen() {
           <Text style={styles.contactTag}>DATOS DE CONTACTO</Text>
 
           <View style={styles.contactInfoBox}>
-            <Ionicons name="call-outline" size={20} color="#AAA" />
+            <Ionicons
+              name="call-outline"
+              size={20}
+              color="#AAA"
+            />
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.contactInfoLabel}>Teléfono</Text>
-              <Text style={styles.contactInfoValue}>+54 11 5555-0002</Text>
+              <Text style={styles.contactInfoValue}>{offer.event.user.name}</Text>
             </View>
           </View>
 
           <View style={styles.contactInfoBox}>
-            <Ionicons name="mail-outline" size={20} color="#AAA" />
+            <Ionicons
+              name="mail-outline"
+              size={20}
+              color="#AAA"
+            />
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.contactInfoLabel}>Email</Text>
-              <Text style={styles.contactInfoValue}>juan@demo.com</Text>
+              <Text style={styles.contactInfoValue}>{offer.event.user.email}</Text>
             </View>
           </View>
         </View>
@@ -136,11 +208,7 @@ export default function DatosOrganizadorScreen() {
         {/* RECORDATORIO */}
         <View style={styles.reminderBox}>
           <Text style={styles.reminderText}>
-            <Text style={{ fontWeight: "bold", color: "#555" }}>
-              Recordá coordinar:
-            </Text>{" "}
-            fecha y horario de entrega, forma de pago y lugar exacto con el
-            organizador.
+            <Text style={{ fontWeight: "bold", color: "#555" }}>Recordá coordinar:</Text> fecha y horario de entrega, forma de pago y lugar exacto con el organizador.
           </Text>
         </View>
 
@@ -212,6 +280,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: "#111",
+    flex: 1,
   },
   priceRow: {
     flexDirection: "row",
