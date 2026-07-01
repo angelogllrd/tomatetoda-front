@@ -1,85 +1,125 @@
+import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Datos simulados de eventos DISPONIBLES (donde Carlos todavía no ofertó)
-const mockAvailableEvents = [
-  {
-    id: "e3",
-    title: "Reunión Anual de Socios",
-    date: "3 jul 2026",
-    location: "Piso 12, Torre Catalinas, CABA",
-    people: 40,
-    description:
-      "Vino tinto y blanco, agua con y sin gas, jugos y sodas para acompañar cena de negocios.",
-    organizer: "Juan Pérez",
-  },
-  {
-    id: "e4",
-    title: "Fiesta de Fin de Año",
-    date: "15 dic 2026",
-    location: "Salón Dorado, Belgrano",
-    people: 200,
-    description:
-      "Barras móviles con tragos clásicos, cerveza tirada y bebidas sin alcohol.",
-    organizer: "Sofía Martínez",
-  },
-];
+// TIPOS DE DATOS
+type EventoDisponible = {
+  id: number;
+  title: string;
+  date: string;
+  location: string;
+  people: number;
+  description: string;
+  organizer: string;
+};
+
+type ProviderProfile = {
+  name: string;
+  company_name: string;
+};
 
 export default function HomeProveedorScreen() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
 
-  // Lógica para filtrar eventos con el buscador
-  const filteredEvents = mockAvailableEvents.filter(
+  // ESTADOS
+  const [eventos, setEventos] = useState<EventoDisponible[]>([]);
+  const [user, setUser] = useState<ProviderProfile>({
+    name: "Proveedor",
+    company_name: "",
+  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // OBTENER DATOS DEL BACKEND
+  const fetchDatos = async () => {
+    try {
+      const [eventsRes, userRes] = await Promise.all([
+        api.get("/events-available"),
+        api.get("/user"),
+      ]);
+      setEventos(eventsRes.data.events);
+      setUser({
+        name: userRes.data.name.split(" ")[0], // Primer nombre
+        company_name: userRes.data.company_name || "Mi Empresa",
+      });
+    } catch (error) {
+      console.error("Error cargando home de proveedor:", error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchDatos();
+    }, []),
+  );
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchDatos();
+  };
+
+  // LÓGICA DE FILTRADO Y FECHAS
+  const filteredEvents = eventos.filter(
     (evento) =>
       evento.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       evento.location.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  // Función para calcular días restantes
   const getDaysRemaining = (dateString: string) => {
-    const meses: Record<string, number> = {
-      ene: 0,
-      feb: 1,
-      mar: 2,
-      abr: 3,
-      may: 4,
-      jun: 5,
-      jul: 6,
-      ago: 7,
-      sep: 8,
-      oct: 9,
-      nov: 10,
-      dic: 11,
-    };
-    const partes = dateString.split(" ");
+    const eventDate = new Date(dateString + "T00:00:00");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    if (partes.length === 3) {
-      const fechaEvento = new Date(
-        Number(partes[2]),
-        meses[partes[1].toLowerCase()],
-        Number(partes[0]),
-      );
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+    const diffTime = eventDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      const diffTime = Math.abs(fechaEvento.getTime() - today.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-      return `${diffDays}d restantes`;
-    }
-    return "";
+    if (diffDays === 0) return "Hoy";
+    if (diffDays === 1) return "Mañana";
+    return `${diffDays}d restantes`;
   };
+
+  const formatearFecha = (fechaString: string) => {
+    const [year, month, day] = fechaString.split("-");
+    const meses = [
+      "ene",
+      "feb",
+      "mar",
+      "abr",
+      "may",
+      "jun",
+      "jul",
+      "ago",
+      "sep",
+      "oct",
+      "nov",
+      "dic",
+    ];
+    return `${day} ${meses[parseInt(month, 10) - 1]} ${year}`;
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#E8321E" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -87,17 +127,18 @@ export default function HomeProveedorScreen() {
       <View style={styles.header}>
         <View style={styles.headerTextContainer}>
           <Text style={styles.greeting}>Hola,</Text>
-          <Text style={styles.name}>Carlos</Text>
-          <Text style={styles.role}>Bebidas del Sur SRL</Text>
+          <Text style={styles.name}>{user.name}</Text>
+          <Text style={styles.role}>{user.company_name}</Text>
         </View>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>C</Text>
+          <Text style={styles.avatarText}>
+            {user.name.charAt(0).toUpperCase()}
+          </Text>
         </View>
       </View>
 
       {/* BUSCADOR */}
       <View style={styles.searchContainer}>
-        {/* Mantenemos el ícono de lupa para mejor UX, aunque no haya texto */}
         <Ionicons
           name="search-outline"
           size={20}
@@ -122,16 +163,25 @@ export default function HomeProveedorScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            colors={["#E8321E"]}
+          />
+        }
       >
         {filteredEvents.length === 0 ? (
           /* ESTADO VACÍO (SIN RESULTADOS) */
           <View style={styles.emptyStateCard}>
             <Text style={styles.emptyStateTitle}>Sin resultados</Text>
-            <Text style={styles.emptyStateSub}>Probá con otro término</Text>
+            <Text style={styles.emptyStateSub}>
+              No hay eventos disponibles para ofertar.
+            </Text>
           </View>
         ) : (
           filteredEvents.map((evento) => (
-            /* TARJETA DE EVENTO COMPLETA CLIQUEABLE */
+            /* TARJETA DE EVENTO */
             <TouchableOpacity
               key={evento.id}
               style={styles.eventCard}
@@ -140,7 +190,9 @@ export default function HomeProveedorScreen() {
               }
             >
               <View style={styles.eventHeaderRow}>
-                <Text style={styles.eventTitle}>{evento.title}</Text>
+                <Text style={styles.eventTitle} numberOfLines={1}>
+                  {evento.title}
+                </Text>
                 <Text style={styles.daysRemaining}>
                   {getDaysRemaining(evento.date)}
                 </Text>
@@ -148,7 +200,9 @@ export default function HomeProveedorScreen() {
 
               <View style={styles.infoRow}>
                 <Ionicons name="calendar-outline" size={16} color="#AAA" />
-                <Text style={styles.infoText}>{evento.date}</Text>
+                <Text style={styles.infoText}>
+                  {formatearFecha(evento.date)}
+                </Text>
               </View>
               <View style={styles.infoRow}>
                 <Ionicons name="location-outline" size={16} color="#AAA" />
@@ -181,11 +235,23 @@ export default function HomeProveedorScreen() {
 }
 
 const styles = StyleSheet.create({
+  // CONTENEDORES PRINCIPALES
   safeArea: {
     flex: 1,
     backgroundColor: "#F5F5F5",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+  },
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+  },
 
+  // ENCABEZADO
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -194,6 +260,8 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 24,
     backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5E5",
   },
   headerTextContainer: {
     flex: 1,
@@ -226,6 +294,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 
+  // BUSCADOR Y LISTA
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -247,7 +316,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#111",
   },
-
   listHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -265,11 +333,7 @@ const styles = StyleSheet.create({
     color: "#888",
   },
 
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-  },
-
+  // TARJETAS
   emptyStateCard: {
     backgroundColor: "#fff",
     paddingVertical: 40,
@@ -291,7 +355,6 @@ const styles = StyleSheet.create({
     color: "#888",
     textAlign: "center",
   },
-
   eventCard: {
     backgroundColor: "#fff",
     padding: 20,
@@ -319,6 +382,7 @@ const styles = StyleSheet.create({
     color: "#AAA",
   },
 
+  // CONTENIDO DE LA TARJETA
   infoRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -329,7 +393,6 @@ const styles = StyleSheet.create({
     color: "#666",
     marginLeft: 8,
   },
-
   descriptionBox: {
     backgroundColor: "#F8F8F8",
     padding: 12,
@@ -342,7 +405,6 @@ const styles = StyleSheet.create({
     color: "#666",
     lineHeight: 20,
   },
-
   cardFooter: {
     flexDirection: "row",
     justifyContent: "space-between",

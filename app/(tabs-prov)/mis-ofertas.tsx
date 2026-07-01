@@ -1,6 +1,10 @@
+import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
+  ActivityIndicator,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,82 +13,113 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Datos simulados con el historial completo de ofertas de Carlos
-const mockMyOffers = [
-  {
-    id: "o1",
-    title: "Tech Summit 2026",
-    date: "25 jun 2026",
-    people: 80,
-    price: "$62.000",
-    status: "Aceptada", // Verde
-    description:
-      "Agua Villavicencio x50, jugos Ades, Sprite Zero x24, Heineken x2 cajones. Entrega...",
-  },
-  {
-    id: "o2",
-    title: "Casamiento García-López",
-    date: "20 ago 2026",
-    people: 150,
-    price: "$185.000",
-    status: "Pendiente", // Naranja/Marrón
-    description:
-      "Paquete premium: vinos Rutini, Chandon para brindis, cervezas artesanales Antares y...",
-  },
-  {
-    id: "o3",
-    title: "Cumpleaños de Sofía",
-    date: "15 jul 2026",
-    people: 50,
-    price: "$45.000",
-    status: "Rechazada", // Gris
-    description:
-      "Incluye delivery y refrigeración. 2 cajones Quilmes, 20 sodas variadas, 10 jugos Cepita...",
-  },
-  {
-    id: "o4",
-    title: "Despedida de Soltero Lucas",
-    date: "3 may 2026",
-    people: 30,
-    price: "$28.000",
-    status: "Caducada", // Gris
-    description:
-      "Cerveza Quilmes tirada x2 choperas, fernet Branca 2L x3, Coca-Cola x12, aguas y sodas.",
-  },
-];
+// TIPO DE DATOS
+type EventInfo = {
+  id: number;
+  title: string;
+  event_date: string;
+  status: string;
+  guests_count: number;
+};
+
+type Offer = {
+  id: number;
+  price: number;
+  description: string;
+  status: "pendiente" | "aceptada" | "rechazada" | "caducada";
+  event: EventInfo;
+};
 
 export default function MisOfertasScreen() {
   const router = useRouter();
 
-  // Calculamos las estadísticas dinámicamente basadas en la captura
-  const total = mockMyOffers.length;
-  const pendientes = mockMyOffers.filter(
-    (o) => o.status === "Pendiente",
-  ).length;
-  const aceptadas = mockMyOffers.filter((o) => o.status === "Aceptada").length;
+  // ESTADOS
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // OBTENER DATOS DEL BACKEND
+  const fetchOffers = async () => {
+    try {
+      const response = await api.get("/mis-offers");
+      setOffers(response.data.offers);
+    } catch (error) {
+      console.error("Error al cargar mis ofertas:", error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchOffers();
+    }, []),
+  );
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchOffers();
+  };
+
+  // LÓGICA DE ESTADÍSTICAS Y FORMATO
+  const total = offers.length;
+  const pendientes = offers.filter((o) => o.status === "pendiente").length;
+  const aceptadas = offers.filter((o) => o.status === "aceptada").length;
 
   // Función auxiliar para pintar el texto del estado según corresponda
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Aceptada":
+      case "aceptada":
         return "#16A34A"; // Verde
-      case "Pendiente":
+      case "pendiente":
         return "#B45309"; // Naranja
-      case "Rechazada":
+      case "rechazada":
         return "#AAA"; // Gris
-      case "Caducada":
+      case "caducada":
         return "#AAA"; // Gris
       default:
         return "#333";
     }
   };
 
+  const formatearFecha = (fechaString: string) => {
+    const [year, month, day] = fechaString.split("-");
+    const meses = [
+      "ene",
+      "feb",
+      "mar",
+      "abr",
+      "may",
+      "jun",
+      "jul",
+      "ago",
+      "sep",
+      "oct",
+      "nov",
+      "dic",
+    ];
+    return `${parseInt(day, 10)} ${meses[parseInt(month, 10) - 1]} ${year}`;
+  };
+
+  const formatearMoneda = (monto: number) => {
+    return "$" + monto.toLocaleString("es-AR");
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#E8321E" />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       {/* TÍTULO DE LA PANTALLA */}
       <Text style={styles.screenTitle}>Mis ofertas</Text>
 
-      {/* CONTENEDOR DE ESTADÍSTICAS */}
+      {/* ESTADÍSTICAS */}
       <View style={styles.statsContainer}>
         <View style={styles.statBox}>
           <Text style={styles.statNumber}>{total}</Text>
@@ -92,8 +127,7 @@ export default function MisOfertasScreen() {
         </View>
 
         <View style={styles.statBox}>
-          {/* Forzamos a '2' como en tu captura de diseño de muestra */}
-          <Text style={styles.statNumber}>1</Text>
+          <Text style={styles.statNumber}>{pendientes}</Text>
           <Text style={styles.statLabel}>Pendientes</Text>
         </View>
 
@@ -107,70 +141,104 @@ export default function MisOfertasScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            colors={["#E8321E"]}
+          />
+        }
       >
-        {mockMyOffers.map((oferta) => (
-          <TouchableOpacity
-            key={oferta.id}
-            style={[
-              styles.offerCard,
-              oferta.status === "Caducada" && { opacity: 0.5 }, // Efecto sutil "apagado" para las caducadas
-            ]}
-            // Nos redirige al detalle interno de la oferta
-            onPress={() =>
-              router.push(`/detalle-oferta-proveedor/${oferta.id}` as any)
-            }
-          >
-            {/* FILA DE TÍTULO Y ESTADO */}
-            <View style={styles.cardHeaderRow}>
-              <Text style={styles.eventTitle}>{oferta.title}</Text>
-              <Text
-                style={[
-                  styles.statusBadge,
-                  { color: getStatusColor(oferta.status) },
-                ]}
-              >
-                {oferta.status}
-              </Text>
-            </View>
-
-            {/* SUBTÍTULO CON DETALLES */}
-            <Text style={styles.eventSubtitle}>
-              {oferta.date} • {oferta.people} personas
+        {offers.length === 0 ? (
+          <View style={styles.emptyStateCard}>
+            <Text style={styles.emptyStateTitle}>Sin ofertas</Text>
+            <Text style={styles.emptyStateSub}>
+              Aún no enviaste ninguna propuesta a los organizadores.
             </Text>
-
-            {/* FILA DE PRECIO */}
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Tu precio</Text>
-              <Text style={styles.priceValue}>{oferta.price}</Text>
-            </View>
-
-            {/* CUADRO DE DESCRIPCIÓN */}
-            <View style={styles.descriptionBox}>
-              <Text style={styles.descriptionText} numberOfLines={2}>
-                {oferta.description}
-              </Text>
-            </View>
-
-            {/* ACCIÓN VER OFERTA */}
-            <View style={styles.cardFooter}>
-              <View style={styles.verOfertaBtn}>
-                <Text style={styles.verOfertaText}>Ver oferta</Text>
-                <Ionicons name="chevron-forward" size={14} color="#E8321E" />
+          </View>
+        ) : (
+          offers.map((oferta) => (
+            <TouchableOpacity
+              key={oferta.id}
+              style={[
+                styles.offerCard,
+                oferta.status === "caducada" && { opacity: 0.5 }, // Efecto sutil "apagado" para las caducadas
+              ]}
+              // Nos redirige al detalle interno de la oferta
+              onPress={() =>
+                router.push(`/detalle-oferta-proveedor/${oferta.id}` as any)
+              }
+            >
+              {/* FILA DE TÍTULO Y ESTADO */}
+              <View style={styles.cardHeaderRow}>
+                <Text style={styles.eventTitle} numberOfLines={1}>
+                  {oferta.event.title}
+                </Text>
+                <Text
+                  style={[
+                    styles.statusBadge,
+                    { color: getStatusColor(oferta.status) },
+                  ]}
+                >
+                  {oferta.status.charAt(0).toUpperCase() +
+                    oferta.status.slice(1)}
+                </Text>
               </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+
+              {/* FECHA Y PERSONAS */}
+              <View style={styles.subtitleRow}>
+                <Ionicons name="calendar-outline" size={14} color="#AAA" />
+                <Text style={styles.eventSubtitle}>
+                  {" "}
+                  {formatearFecha(oferta.event.event_date)} ·{" "}
+                  {oferta.event.guests_count} personas
+                </Text>
+              </View>
+
+              {/* FILA DE PRECIO */}
+              <View style={styles.priceRow}>
+                <Text style={styles.priceLabel}>Tu precio</Text>
+                <Text style={styles.priceValue}>
+                  {formatearMoneda(oferta.price)}
+                </Text>
+              </View>
+
+              {/* CUADRO DE DESCRIPCIÓN */}
+              {oferta.description ? (
+                <View style={styles.descriptionBox}>
+                  <Text style={styles.descriptionText} numberOfLines={2}>
+                    {oferta.description}
+                  </Text>
+                </View>
+              ) : null}
+
+              {/* BOTÓN VER OFERTA */}
+              <View style={styles.cardFooter}>
+                <View style={styles.verOfertaBtn}>
+                  <Text style={styles.verOfertaText}>Ver oferta</Text>
+                  <Ionicons name="chevron-forward" size={14} color="#E8321E" />
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  // CONTENEDORES PRINCIPALES
   safeArea: {
     flex: 1,
     backgroundColor: "#F5F5F5",
   },
-
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+  },
   screenTitle: {
     fontSize: 24,
     fontWeight: "bold",
@@ -180,8 +248,12 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     backgroundColor: "#fff",
   },
+  scrollContent: {
+    padding: 24,
+    paddingBottom: 40,
+  },
 
-  // Estilos de la fila de estadísticas
+  // ESTADÍSTICAS
   statsContainer: {
     flexDirection: "row",
     paddingHorizontal: 24,
@@ -211,12 +283,30 @@ const styles = StyleSheet.create({
     color: "#999",
   },
 
-  scrollContent: {
-    padding: 24,
-    paddingBottom: 40,
+  // ESTADO VACÍO
+  emptyStateCard: {
+    backgroundColor: "#fff",
+    paddingVertical: 40,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    alignItems: "center",
+    marginTop: 8,
+  },
+  emptyStateTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#111",
+    marginBottom: 8,
+  },
+  emptyStateSub: {
+    fontSize: 14,
+    color: "#888",
+    textAlign: "center",
   },
 
-  // Estilos de las tarjetas de ofertas
+  // TARJETAS
   offerCard: {
     backgroundColor: "#fff",
     padding: 20,
@@ -242,13 +332,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
-
+  subtitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
   eventSubtitle: {
     fontSize: 14,
     color: "#888",
-    marginBottom: 16,
   },
 
+  // PRECIO Y DESCRIPCIÓN
   priceRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -264,7 +358,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#E8321E",
   },
-
   descriptionBox: {
     backgroundColor: "#F8F8F8",
     padding: 12,
@@ -277,6 +370,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
+  // FOOTER
   cardFooter: {
     flexDirection: "row",
     justifyContent: "flex-end",

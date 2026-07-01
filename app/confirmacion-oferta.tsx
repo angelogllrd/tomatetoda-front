@@ -26,14 +26,14 @@ export default function ConfirmacionOfertaScreen() {
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.primaryButton}
-          onPress={() => router.push("/(tabs-prov)/mis-ofertas")}
+          onPress={() => router.replace("/(tabs-prov)/mis-ofertas")}
         >
           <Text style={styles.primaryButtonText}>Ver mis ofertas</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.secondaryButton}
-          onPress={() => router.push("/(tabs-prov)/home-proveedor")}
+          onPress={() => router.replace("/(tabs-prov)/home-proveedor")}
         >
           <Text style={styles.secondaryButtonText}>Ver más eventos</Text>
         </TouchableOpacity>

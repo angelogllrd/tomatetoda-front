@@ -1,6 +1,10 @@
+import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,25 +13,76 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+// TIPO DE DATOS DEL USUARIO
+type ProviderProfile = {
+  name: string;
+  email: string;
+  phone: string;
+  company_name: string;
+};
+
 export default function PerfilProveedorScreen() {
   const router = useRouter();
 
-  const handleLogout = () => {
-    // Acá en el futuro borraríamos el Token guardado en el celular
-    // Por ahora solo lo mandamos al login de vuelta
-    router.replace("/login");
+  // ESTADOS
+  const [user, setUser] = useState<ProviderProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // OBTENER DATOS DEL BACKEND
+  const fetchUserData = async () => {
+    try {
+      const response = await api.get("/user");
+      setUser(response.data);
+    } catch (error) {
+      console.error("Error al cargar el perfil de proveedor:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+    }, []),
+  );
+
+  // LÓGICA DE CERRAR SESIÓN
+  const handleLogout = async () => {
+    try {
+      await api.post("/logout");
+    } catch (error) {
+      console.error("Error cerrando sesión en el servidor:", error);
+    } finally {
+      await AsyncStorage.removeItem("token");
+      router.replace("/login");
+    }
+  };
+
+  if (isLoading || !user) {
+    return (
+      <View
+        style={[
+          styles.safeArea,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#E8321E" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       {/* HEADER CON AVATAR */}
       <View style={styles.header}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>C</Text>
+          <Text style={styles.avatarText}>
+            {user.name.charAt(0).toUpperCase()}
+          </Text>
         </View>
         <View style={styles.headerTextContainer}>
-          <Text style={styles.name}>Carlos Rodríguez</Text>
-          <Text style={styles.role}>Bebidas del Sur SRL</Text>
+          <Text style={styles.name}>{user.name}</Text>
+          <Text style={styles.role}>{user.company_name || "Proveedor"}</Text>
         </View>
       </View>
 
@@ -46,7 +101,7 @@ export default function PerfilProveedorScreen() {
             />
             <View>
               <Text style={styles.infoLabel}>Nombre</Text>
-              <Text style={styles.infoValue}>Carlos Rodríguez</Text>
+              <Text style={styles.infoValue}>{user.name}</Text>
             </View>
           </View>
 
@@ -61,7 +116,9 @@ export default function PerfilProveedorScreen() {
             />
             <View>
               <Text style={styles.infoLabel}>Negocio / empresa</Text>
-              <Text style={styles.infoValue}>Bebidas del Sur SRL</Text>
+              <Text style={styles.infoValue}>
+                {user.company_name || "No especificado"}
+              </Text>
             </View>
           </View>
 
@@ -76,7 +133,7 @@ export default function PerfilProveedorScreen() {
             />
             <View>
               <Text style={styles.infoLabel}>Email</Text>
-              <Text style={styles.infoValue}>carlos@demo.com</Text>
+              <Text style={styles.infoValue}>{user.email}</Text>
             </View>
           </View>
 
@@ -91,7 +148,9 @@ export default function PerfilProveedorScreen() {
             />
             <View>
               <Text style={styles.infoLabel}>Teléfono</Text>
-              <Text style={styles.infoValue}>+54 11 5555-0003</Text>
+              <Text style={styles.infoValue}>
+                {user.phone || "No especificado"}
+              </Text>
             </View>
           </View>
         </View>
