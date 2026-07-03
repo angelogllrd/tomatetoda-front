@@ -1,3 +1,4 @@
+import Button from "@/components/Button";
 import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -113,32 +114,22 @@ export default function HomeOrganizadorScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            colors={["#E8321E"]}
-          />
-        }
-      >
-        {/* ENCABEZADO Y PERFIL */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>Hola,</Text>
-            <Text style={styles.name}>{userName}</Text>
-            <Text style={styles.role}>Organizador</Text>
-          </View>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {userName.charAt(0).toUpperCase()}
-            </Text>
-          </View>
+      {/* HEADER DE BIENVENIDA */}
+      <View style={styles.header}>
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.greeting}>Hola,</Text>
+          <Text style={styles.name}>{userName}</Text>
+          <Text style={styles.role}>Organizador</Text>
         </View>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>
+            {userName.charAt(0).toUpperCase()}
+          </Text>
+        </View>
+      </View>
 
-        {/* ESTADÍSTICAS (MOLÉCULAS) */}
+      {/* CONTENIDO FIJO (Estadísticas, Botón y Título) */}
+      <View style={styles.fixedContent}>
         <View style={styles.statsContainer}>
           <View style={styles.statBox}>
             <Text style={styles.statNumber}>{stats.total}</Text>
@@ -154,23 +145,27 @@ export default function HomeOrganizadorScreen() {
           </View>
         </View>
 
-        {/* BOTÓN PUBLICAR */}
-        <TouchableOpacity
-          style={styles.publishButton}
+        <Button
+          title="Publicar nuevo evento"
+          icon="add"
           onPress={() => router.push("/publicar-evento")}
-        >
-          <Ionicons
-            name="add"
-            size={24}
-            color="#fff"
-            style={{ marginRight: 8 }}
-          />
-          <Text style={styles.publishButtonText}>Publicar nuevo evento</Text>
-        </TouchableOpacity>
+        />
 
         <Text style={styles.sectionTitle}>Mis eventos</Text>
+      </View>
 
-        {/* LISTADO DE EVENTOS */}
+      {/* SCROLLVIEW ÚNICAMENTE PARA LAS TARJETAS DE EVENTOS */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            colors={["#E8321E"]}
+          />
+        }
+      >
         {eventos.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyTitle}>Aún no publicaste eventos</Text>
@@ -217,7 +212,6 @@ export default function HomeOrganizadorScreen() {
                 </Text>
               </View>
 
-              {/* FOOTER */}
               <View style={styles.eventFooter}>
                 {evento.status === "cerrado" ? (
                   evento.acceptedOfferAmount ? (
@@ -250,7 +244,7 @@ export default function HomeOrganizadorScreen() {
 }
 
 const styles = StyleSheet.create({
-  // CONTENEDORES PRINCIPALES
+  // CONTENEDORES GLOBALES
   safeArea: {
     flex: 1,
     backgroundColor: "#F5F5F5",
@@ -261,16 +255,59 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#F5F5F5",
   },
+  fixedContent: {
+    paddingHorizontal: 24,
+    paddingTop: 24,
+  },
   scrollContent: {
-    padding: 24,
+    paddingHorizontal: 24,
     paddingBottom: 40,
   },
+
+  // ENCABEZADO Y PERFIL
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 24,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5E5",
   },
+  headerTextContainer: {
+    flex: 1,
+  },
+  greeting: {
+    fontSize: 16,
+    color: "#999",
+  },
+  name: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#111",
+  },
+  role: {
+    fontSize: 14,
+    color: "#999",
+    marginTop: 2,
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#E8321E",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarText: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+
+  // ESTADÍSTICAS
   statsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -280,12 +317,33 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     borderRadius: 8,
-    paddingVertical: 16,
+    paddingVertical: 12,
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#E5E5E5",
     marginHorizontal: 4,
   },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#111",
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: "#999",
+  },
+
+  // TÍTULO DE SECCIÓN
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#111",
+    marginBottom: 16,
+    marginTop: 16,
+  },
+
+  // ESTADOS VACÍOS (SIN RESULTADOS)
   emptyState: {
     backgroundColor: "#fff",
     padding: 32,
@@ -293,6 +351,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E5E5E5",
     alignItems: "center",
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#111",
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: "#888",
+    textAlign: "center",
+    lineHeight: 20,
   },
 
   // TARJETAS DE EVENTOS
@@ -310,106 +380,6 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: 16,
   },
-  eventInfoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  eventFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 16,
-    // paddingTop: 16,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#E8321E",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  // BOTONES Y ETIQUETAS (BADGES)
-  publishButton: {
-    flexDirection: "row",
-    backgroundColor: "#E8321E",
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 32,
-  },
-  badge: {
-    fontSize: 12,
-    fontWeight: "500",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  badgeOpen: {
-    color: "#16A34A",
-    backgroundColor: "#fff",
-  },
-  badgeClosed: {
-    color: "#999",
-    backgroundColor: "#fff",
-  },
-
-  // TEXTOS Y TIPOGRAFÍAS
-  greeting: {
-    fontSize: 16,
-    color: "#999",
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#111",
-  },
-  role: {
-    fontSize: 14,
-    color: "#999",
-    marginTop: 2,
-  },
-  avatarText: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#111",
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: "#999",
-  },
-  publishButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#111",
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#111",
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: "#888",
-    textAlign: "center",
-    lineHeight: 20,
-  },
   eventTitle: {
     fontSize: 16,
     fontWeight: "bold",
@@ -417,10 +387,21 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingRight: 8,
   },
+  eventInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
   eventInfoText: {
     fontSize: 14,
     color: "#666",
     marginLeft: 8,
+  },
+  eventFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 16,
   },
   noOfferText: {
     fontSize: 14,
@@ -440,5 +421,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#AAA",
     fontWeight: "500",
+  },
+
+  // ETIQUETAS (BADGES)
+  badge: {
+    fontSize: 12,
+    fontWeight: "500",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  badgeOpen: {
+    color: "#16A34A",
+    backgroundColor: "#fff",
+  },
+  badgeClosed: {
+    color: "#999",
+    backgroundColor: "#fff",
   },
 });

@@ -1,3 +1,4 @@
+import Button from "@/components/Button";
 import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
@@ -232,22 +233,15 @@ export default function DetalleEventoScreen() {
               </Text>
             </View>
 
-            <TouchableOpacity
-              style={styles.contactButton}
+            <Button
+              title="Ver datos de contacto"
+              variant="success"
+              icon="chevron-forward"
+              iconPosition="right"
               onPress={() =>
                 router.push(`/datos-proveedor/${acceptedOffer.id}`)
               }
-            >
-              <Text style={styles.contactButtonText}>
-                Ver datos de contacto
-              </Text>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color="#fff"
-                style={{ marginLeft: 4 }}
-              />
-            </TouchableOpacity>
+            />
           </View>
         ) : event.status === "cerrado" && !acceptedOffer ? (
           /* 2. ESTADO VACÍO: EVENTO CADUCADO */
@@ -319,59 +313,43 @@ export default function DetalleEventoScreen() {
                         <Text style={styles.confirmPrompt}>
                           ¿Confirmar aceptar esta oferta?
                         </Text>
-                        <View style={styles.confirmButtonsRow}>
-                          <TouchableOpacity
-                            style={[styles.actionButton, styles.cancelButton]}
+                        <View style={{ flexDirection: "row", gap: 12 }}>
+                          <Button
+                            title="Cancelar"
+                            variant="light"
+                            compact // modo compacto
+                            style={{ flex: 1, marginBottom: 0 }}
                             onPress={() => setConfirmingOfferId(null)}
                             disabled={isAccepting}
-                          >
-                            <Text style={styles.cancelButtonText}>
-                              Cancelar
-                            </Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.actionButton, styles.confirmButton]}
+                          />
+                          <Button
+                            title="Confirmar"
+                            variant="success"
+                            compact // modo compacto
+                            style={{ flex: 1, marginBottom: 0 }}
                             onPress={() => handleConfirmAccept(offer.id)}
-                            disabled={isAccepting}
-                          >
-                            {isAccepting ? (
-                              <ActivityIndicator size="small" color="#fff" />
-                            ) : (
-                              <Text style={styles.confirmButtonText}>
-                                Confirmar
-                              </Text>
-                            )}
-                          </TouchableOpacity>
+                            loading={isAccepting}
+                          />
                         </View>
                       </View>
                     ) : (
-                      <View style={styles.actionButtonsRow}>
-                        <TouchableOpacity
-                          style={[styles.actionButton, styles.rejectButton]}
+                      <View style={{ flexDirection: "row", gap: 12 }}>
+                        <Button
+                          title="Rechazar"
+                          variant="light"
+                          icon="close"
+                          compact // modo compacto
+                          style={{ flex: 1, marginBottom: 0 }}
                           onPress={() => handleRejectOffer(offer.id)}
-                        >
-                          <Ionicons
-                            name="close"
-                            size={16}
-                            color="#888"
-                            style={{ marginRight: 4 }}
-                          />
-                          <Text style={styles.rejectButtonText}>Rechazar</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={[styles.actionButton, styles.acceptButton]}
+                        />
+                        <Button
+                          title="Aceptar oferta"
+                          variant="primary"
+                          icon="checkmark"
+                          compact // modo compacto
+                          style={{ flex: 1, marginBottom: 0 }}
                           onPress={() => setConfirmingOfferId(offer.id)}
-                        >
-                          <Ionicons
-                            name="checkmark"
-                            size={16}
-                            color="#fff"
-                            style={{ marginRight: 4 }}
-                          />
-                          <Text style={styles.acceptButtonText}>
-                            Aceptar oferta
-                          </Text>
-                        </TouchableOpacity>
+                        />
                       </View>
                     )}
                   </View>
@@ -567,39 +545,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  // BOTONES DE ACCIÓN (ACEPTAR / RECHAZAR)
-  actionButtonsRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  rejectButton: {
-    backgroundColor: "#F5F5F5",
-    borderColor: "#E5E5E5",
-  },
-  rejectButtonText: {
-    color: "#888",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  acceptButton: {
-    backgroundColor: "#E8321E",
-    borderColor: "#E8321E",
-  },
-  acceptButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-
   // CAJA DE CONFIRMACIÓN
   confirmBox: {
     marginTop: 8,
@@ -609,28 +554,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#333",
     marginBottom: 16,
-  },
-  confirmButtonsRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  cancelButton: {
-    backgroundColor: "#F0F0F0",
-    borderColor: "#F0F0F0",
-  },
-  cancelButtonText: {
-    color: "#555",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  confirmButton: {
-    backgroundColor: "#16A34A",
-    borderColor: "#16A34A",
-  },
-  confirmButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "bold",
   },
 
   // TARJETAS DE OFERTAS RECHAZADAS
@@ -686,20 +609,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: "#16A34A",
-  },
-  contactButton: {
-    flexDirection: "row",
-    backgroundColor: "#16A34A",
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 8,
-  },
-  contactButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 
   // ESTADO: ESPERANDO OFERTAS (VACÍO)

@@ -1,8 +1,17 @@
+import Button from "@/components/Button";
 import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // TIPO DE DATOS
@@ -45,43 +54,43 @@ export default function EventoDisponibleScreen() {
   // FORMATEADORES
   const formatearFecha = (fechaString: string) => {
     const [year, month, day] = fechaString.split("-");
-    const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    const meses = [
+      "enero",
+      "febrero",
+      "marzo",
+      "abril",
+      "mayo",
+      "junio",
+      "julio",
+      "agosto",
+      "septiembre",
+      "octubre",
+      "noviembre",
+      "diciembre",
+    ];
     return `${parseInt(day, 10)} de ${meses[parseInt(month, 10) - 1]} de ${year}`;
   };
 
   if (isLoading || !event) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator
-          size="large"
-          color="#E8321E"
-        />
+        <ActivityIndicator size="large" color="#E8321E" />
       </View>
     );
   }
 
   return (
-    <SafeAreaView
-      style={styles.safeArea}
-      edges={["top"]}
-    >
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Ionicons
-            name="arrow-back"
-            size={24}
-            color="#111"
-          />
+          <Ionicons name="arrow-back" size={24} color="#111" />
         </TouchableOpacity>
         <View style={styles.headerTextContainer}>
-          <Text
-            style={styles.headerTitle}
-            numberOfLines={1}
-          >
+          <Text style={styles.headerTitle} numberOfLines={1}>
             {event.title}
           </Text>
           <Text style={styles.headerSubtitle}>Organiza: {event.organizer}</Text>
@@ -97,29 +106,17 @@ export default function EventoDisponibleScreen() {
           <Text style={styles.sectionTag}>DETALLES DEL EVENTO</Text>
 
           <View style={styles.detailRow}>
-            <Ionicons
-              name="calendar-outline"
-              size={20}
-              color="#AAA"
-            />
+            <Ionicons name="calendar-outline" size={20} color="#AAA" />
             <Text style={styles.detailText}>{formatearFecha(event.date)}</Text>
           </View>
 
           <View style={styles.detailRow}>
-            <Ionicons
-              name="location-outline"
-              size={20}
-              color="#AAA"
-            />
+            <Ionicons name="location-outline" size={20} color="#AAA" />
             <Text style={styles.detailText}>{event.location}</Text>
           </View>
 
           <View style={styles.detailRow}>
-            <Ionicons
-              name="people-outline"
-              size={20}
-              color="#AAA"
-            />
+            <Ionicons name="people-outline" size={20} color="#AAA" />
             <Text style={styles.detailText}>{event.people} personas</Text>
           </View>
         </View>
@@ -132,16 +129,16 @@ export default function EventoDisponibleScreen() {
             <Text style={styles.descriptionText}>{event.description}</Text>
           </View>
 
-          <Text style={styles.footerNote}>Tu oferta debe cubrir todos los items listados.</Text>
+          <Text style={styles.footerNote}>
+            Tu oferta debe cubrir todos los items listados.
+          </Text>
         </View>
 
         {/* BOTÓN DE ACCIÓN */}
-        <TouchableOpacity
-          style={styles.primaryButton}
+        <Button
+          title="Enviar oferta de precio"
           onPress={() => router.push(`/enviar-oferta/${id}` as any)}
-        >
-          <Text style={styles.primaryButtonText}>Enviar oferta de precio</Text>
-        </TouchableOpacity>
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -235,19 +232,5 @@ const styles = StyleSheet.create({
   footerNote: {
     fontSize: 14,
     color: "#888",
-  },
-
-  // BOTONES
-  primaryButton: {
-    backgroundColor: "#E8321E",
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  primaryButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 });

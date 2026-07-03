@@ -1,6 +1,7 @@
+import Button from "@/components/Button";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ConfirmacionPublicacionScreen() {
@@ -24,12 +25,10 @@ export default function ConfirmacionPublicacionScreen() {
 
       {/* BOTONES DE ACCIÓN */}
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.button}
+        <Button
+          title="Ver mis eventos"
           onPress={() => router.replace("/(tabs-org)/home-organizador")}
-        >
-          <Text style={styles.buttonText}>Ver mis eventos</Text>
-        </TouchableOpacity>
+        />
       </View>
     </SafeAreaView>
   );
@@ -68,18 +67,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 24,
     paddingHorizontal: 20,
-  },
-
-  // BOTONES
-  button: {
-    backgroundColor: "#E8321E",
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 });

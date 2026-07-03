@@ -1,8 +1,18 @@
+import Button from "@/components/Button";
 import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // TIPO DE DATOS
@@ -71,7 +81,9 @@ export default function EnviarOfertaScreen() {
       router.replace("/confirmacion-oferta");
     } catch (error: any) {
       console.error("Error al enviar oferta:", error);
-      setErrorMsg(error.response?.data?.message || "Hubo un error al enviar tu oferta.");
+      setErrorMsg(
+        error.response?.data?.message || "Hubo un error al enviar tu oferta.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -80,37 +92,24 @@ export default function EnviarOfertaScreen() {
   if (isLoading || !event) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator
-          size="large"
-          color="#E8321E"
-        />
+        <ActivityIndicator size="large" color="#E8321E" />
       </View>
     );
   }
 
   return (
-    <SafeAreaView
-      style={styles.safeArea}
-      edges={["top", "bottom"]}
-    >
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Ionicons
-            name="arrow-back"
-            size={24}
-            color="#111"
-          />
+          <Ionicons name="arrow-back" size={24} color="#111" />
         </TouchableOpacity>
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>Enviar oferta</Text>
-          <Text
-            style={styles.headerSubtitle}
-            numberOfLines={1}
-          >
+          <Text style={styles.headerSubtitle} numberOfLines={1}>
             Para: {event.title}
           </Text>
         </View>
@@ -122,7 +121,9 @@ export default function EnviarOfertaScreen() {
       >
         {/* LO QUE NECESITA EL ORGANIZADOR */}
         <View style={styles.card}>
-          <Text style={styles.organizerLabel}>Lo que necesita el organizador</Text>
+          <Text style={styles.organizerLabel}>
+            Lo que necesita el organizador
+          </Text>
           <Text style={styles.organizerNeedsText}>{event.description}</Text>
         </View>
 
@@ -147,7 +148,9 @@ export default function EnviarOfertaScreen() {
             />
           </View>
 
-          <Text style={styles.inputHint}>Precio total por todas las bebidas, delivery incluido</Text>
+          <Text style={styles.inputHint}>
+            Precio total por todas las bebidas, delivery incluido
+          </Text>
         </View>
 
         {/* DETALLE DE LA OFERTA */}
@@ -173,15 +176,21 @@ export default function EnviarOfertaScreen() {
           <Text style={styles.tipsTitle}>Tips para ganar más clientes</Text>
           <View style={styles.tipRow}>
             <Text style={styles.tipBullet}>•</Text>
-            <Text style={styles.tipText}>Especificá las marcas exactas que vas a proveer</Text>
+            <Text style={styles.tipText}>
+              Especificá las marcas exactas que vas a proveer
+            </Text>
           </View>
           <View style={styles.tipRow}>
             <Text style={styles.tipBullet}>•</Text>
-            <Text style={styles.tipText}>Indicá si el precio incluye delivery</Text>
+            <Text style={styles.tipText}>
+              Indicá si el precio incluye delivery
+            </Text>
           </View>
           <View style={styles.tipRow}>
             <Text style={styles.tipBullet}>•</Text>
-            <Text style={styles.tipText}>Mencioná si das factura o garantía de frescura</Text>
+            <Text style={styles.tipText}>
+              Mencioná si das factura o garantía de frescura
+            </Text>
           </View>
         </View>
 
@@ -189,13 +198,11 @@ export default function EnviarOfertaScreen() {
         {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
 
         {/* BOTÓN ENVIAR */}
-        <TouchableOpacity
-          style={styles.primaryButton}
+        <Button
+          title="Enviar oferta"
           onPress={handleEnviar}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryButtonText}>Enviar oferta</Text>}
-        </TouchableOpacity>
+          loading={isSubmitting}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -349,16 +356,5 @@ const styles = StyleSheet.create({
     color: "#C0392B",
     fontSize: 14,
     marginBottom: 12,
-  },
-  primaryButton: {
-    backgroundColor: "#E8321E",
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  primaryButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 });

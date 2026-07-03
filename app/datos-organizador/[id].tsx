@@ -1,8 +1,18 @@
+import Button from "@/components/Button";
 import api from "@/services/api";
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // TIPO DE DATOS
@@ -70,31 +80,26 @@ export default function DatosOrganizadorScreen() {
 
   if (isLoading || !offer) {
     return (
-      <View style={[styles.safeArea, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator
-          size="large"
-          color="#E8321E"
-        />
+      <View
+        style={[
+          styles.safeArea,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#E8321E" />
       </View>
     );
   }
 
   return (
-    <SafeAreaView
-      style={styles.safeArea}
-      edges={["top", "bottom"]}
-    >
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Ionicons
-            name="arrow-back"
-            size={24}
-            color="#111"
-          />
+          <Ionicons name="arrow-back" size={24} color="#111" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Datos del organizador</Text>
       </View>
@@ -114,7 +119,9 @@ export default function DatosOrganizadorScreen() {
 
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Tu precio aceptado</Text>
-            <Text style={styles.priceValue}>{formatearMoneda(offer.price)}</Text>
+            <Text style={styles.priceValue}>
+              {formatearMoneda(offer.price)}
+            </Text>
           </View>
 
           {offer.description ? (
@@ -128,11 +135,15 @@ export default function DatosOrganizadorScreen() {
         <View style={styles.providerCard}>
           <View style={styles.providerHeader}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{offer.event.user.name.charAt(0).toUpperCase()}</Text>
+              <Text style={styles.avatarText}>
+                {offer.event.user.name.charAt(0).toUpperCase()}
+              </Text>
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.providerName}>{offer.event.user.name}</Text>
-              <Text style={styles.providerCompany}>Organizador/a del evento</Text>
+              <Text style={styles.providerCompany}>
+                Organizador/a del evento
+              </Text>
             </View>
           </View>
 
@@ -141,84 +152,70 @@ export default function DatosOrganizadorScreen() {
           <Text style={styles.contactTag}>DATOS DE CONTACTO</Text>
 
           <View style={styles.contactInfoBox}>
-            <Ionicons
-              name="call-outline"
-              size={20}
-              color="#AAA"
-            />
+            <Ionicons name="call-outline" size={20} color="#AAA" />
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.contactInfoLabel}>Teléfono</Text>
-              <Text style={styles.contactInfoValue}>{offer.event.user.name}</Text>
+              <Text style={styles.contactInfoValue}>
+                {offer.event.user.name}
+              </Text>
             </View>
           </View>
 
           <View style={styles.contactInfoBox}>
-            <Ionicons
-              name="mail-outline"
-              size={20}
-              color="#AAA"
-            />
+            <Ionicons name="mail-outline" size={20} color="#AAA" />
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.contactInfoLabel}>Email</Text>
-              <Text style={styles.contactInfoValue}>{offer.event.user.email}</Text>
+              <Text style={styles.contactInfoValue}>
+                {offer.event.user.email}
+              </Text>
             </View>
           </View>
         </View>
 
         {/* BOTONES DE ACCIÓN */}
-        <TouchableOpacity
-          style={[styles.actionButton, styles.btnWhatsApp]}
+        <Button
+          title="Escribir por WhatsApp"
+          variant="whatsapp"
+          icon="whatsapp"
+          isFontAwesome={true}
+          style={{ marginBottom: 12 }}
           onPress={handleWhatsApp}
-        >
-          <FontAwesome
-            name="whatsapp"
-            size={20}
-            color="#fff"
-            style={{ marginRight: 8 }}
-          />
-          <Text style={styles.btnWhatsAppText}>Escribir por WhatsApp</Text>
-        </TouchableOpacity>
+        />
 
-        <TouchableOpacity
-          style={[styles.actionButton, styles.btnOutline]}
+        <Button
+          title="Llamar"
+          variant="secondary"
+          icon="call-outline"
+          style={{ marginBottom: 12 }}
           onPress={handleLlamar}
-        >
-          <Ionicons
-            name="call-outline"
-            size={20}
-            color="#333"
-            style={{ marginRight: 8 }}
-          />
-          <Text style={styles.btnOutlineText}>Llamar</Text>
-        </TouchableOpacity>
+        />
 
-        <TouchableOpacity
-          style={[styles.actionButton, styles.btnOutline]}
+        <Button
+          title="Enviar email"
+          variant="secondary"
+          icon="mail-outline"
+          style={{ marginBottom: 12 }}
           onPress={handleEmail}
-        >
-          <Ionicons
-            name="mail-outline"
-            size={20}
-            color="#333"
-            style={{ marginRight: 8 }}
-          />
-          <Text style={styles.btnOutlineText}>Enviar email</Text>
-        </TouchableOpacity>
+        />
 
         {/* RECORDATORIO */}
         <View style={styles.reminderBox}>
           <Text style={styles.reminderText}>
-            <Text style={{ fontWeight: "bold", color: "#555" }}>Recordá coordinar:</Text> fecha y horario de entrega, forma de pago y lugar exacto con el organizador.
+            <Text style={{ fontWeight: "bold", color: "#555" }}>
+              Recordá coordinar:
+            </Text>{" "}
+            fecha y horario de entrega, forma de pago y lugar exacto con el
+            organizador.
           </Text>
         </View>
 
         {/* BOTÓN VOLVER A MIS OFERTAS */}
-        <TouchableOpacity
-          style={[styles.actionButton, styles.btnOutline, { marginTop: 8 }]}
+        <Button
+          title="Volver a mis ofertas"
+          variant="secondary"
+          style={{ marginTop: 8 }}
           onPress={() => router.push("/(tabs-prov)/mis-ofertas")}
-        >
-          <Text style={styles.btnOutlineText}>Volver a mis ofertas</Text>
-        </TouchableOpacity>
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -373,33 +370,6 @@ const styles = StyleSheet.create({
   contactInfoValue: {
     fontSize: 16,
     color: "#111",
-  },
-
-  actionButton: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  btnWhatsApp: {
-    backgroundColor: "#25D366",
-  },
-  btnWhatsAppText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  btnOutline: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-  },
-  btnOutlineText: {
-    color: "#333",
-    fontSize: 16,
-    fontWeight: "500",
   },
 
   reminderBox: {

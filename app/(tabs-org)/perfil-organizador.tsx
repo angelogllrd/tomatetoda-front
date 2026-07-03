@@ -1,3 +1,4 @@
+import Button from "@/components/Button";
 import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -8,8 +9,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -143,15 +143,13 @@ export default function PerfilOrganizadorScreen() {
         </View>
 
         {/* BOTÓN CERRAR SESIÓN */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons
-            name="log-out-outline"
-            size={20}
-            color="#C0392B"
-            style={{ marginRight: 8 }}
-          />
-          <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
-        </TouchableOpacity>
+
+        <Button
+          title="Cerrar sesión"
+          variant="danger"
+          icon="log-out-outline"
+          onPress={handleLogout}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -235,22 +233,5 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: "#EAEAEA",
-  },
-
-  // BOTONES
-  logoutButton: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-  },
-  logoutButtonText: {
-    color: "#C0392B",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 });

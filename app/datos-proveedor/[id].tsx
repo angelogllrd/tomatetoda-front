@@ -1,5 +1,6 @@
+import Button from "@/components/Button";
 import api from "@/services/api";
-import { FontAwesome, Ionicons } from "@expo/vector-icons"; // Sumamos FontAwesome para el logo de WhatsApp
+import { Ionicons } from "@expo/vector-icons"; // Sumamos FontAwesome para el logo de WhatsApp
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -175,44 +176,30 @@ export default function DatosProveedorScreen() {
         </View>
 
         {/* BOTONES DE ACCIÓN */}
-        <TouchableOpacity
-          style={[styles.actionButton, styles.btnWhatsApp]}
+        <Button
+          title="Escribir por WhatsApp"
+          variant="whatsapp"
+          icon="whatsapp"
+          isFontAwesome={true}
+          style={{ marginBottom: 12 }}
           onPress={handleWhatsApp}
-        >
-          <FontAwesome
-            name="whatsapp"
-            size={20}
-            color="#fff"
-            style={{ marginRight: 8 }}
-          />
-          <Text style={styles.btnWhatsAppText}>Escribir por WhatsApp</Text>
-        </TouchableOpacity>
+        />
 
-        <TouchableOpacity
-          style={[styles.actionButton, styles.btnOutline]}
+        <Button
+          title="Llamar"
+          variant="secondary"
+          icon="call-outline"
+          style={{ marginBottom: 12 }}
           onPress={handleLlamar}
-        >
-          <Ionicons
-            name="call-outline"
-            size={20}
-            color="#333"
-            style={{ marginRight: 8 }}
-          />
-          <Text style={styles.btnOutlineText}>Llamar</Text>
-        </TouchableOpacity>
+        />
 
-        <TouchableOpacity
-          style={[styles.actionButton, styles.btnOutline]}
+        <Button
+          title="Enviar email"
+          variant="secondary"
+          icon="mail-outline"
+          style={{ marginBottom: 12 }}
           onPress={handleEmail}
-        >
-          <Ionicons
-            name="mail-outline"
-            size={20}
-            color="#333"
-            style={{ marginRight: 8 }}
-          />
-          <Text style={styles.btnOutlineText}>Enviar email</Text>
-        </TouchableOpacity>
+        />
 
         {/* RECORDATORIO */}
         <View style={styles.reminderBox}>
@@ -226,12 +213,12 @@ export default function DatosProveedorScreen() {
         </View>
 
         {/* BOTÓN VOLVER AL INICIO */}
-        <TouchableOpacity
-          style={[styles.actionButton, styles.btnOutline, { marginTop: 8 }]}
+        <Button
+          title="Volver al inicio"
+          variant="secondary"
+          style={{ marginTop: 8 }}
           onPress={() => router.push("/(tabs-org)/home-organizador")}
-        >
-          <Text style={styles.btnOutlineText}>Volver al inicio</Text>
-        </TouchableOpacity>
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -393,34 +380,6 @@ const styles = StyleSheet.create({
   contactInfoValue: {
     fontSize: 16,
     color: "#111",
-  },
-
-  // BOTONES
-  actionButton: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  btnWhatsApp: {
-    backgroundColor: "#25D366",
-  },
-  btnWhatsAppText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  btnOutline: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-  },
-  btnOutlineText: {
-    color: "#333",
-    fontSize: 16,
-    fontWeight: "500",
   },
 
   // RECORDATORIO

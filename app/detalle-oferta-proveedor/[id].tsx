@@ -1,8 +1,17 @@
+import Button from "@/components/Button";
 import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // TIPO DE DATOS
@@ -72,7 +81,20 @@ export default function DetalleOfertaProveedorScreen() {
 
   const formatearFecha = (fechaString: string) => {
     const [year, month, day] = fechaString.split("-");
-    const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    const meses = [
+      "enero",
+      "febrero",
+      "marzo",
+      "abril",
+      "mayo",
+      "junio",
+      "julio",
+      "agosto",
+      "septiembre",
+      "octubre",
+      "noviembre",
+      "diciembre",
+    ];
     return `${parseInt(day, 10)} de ${meses[parseInt(month, 10) - 1]} de ${year}`;
   };
 
@@ -83,39 +105,28 @@ export default function DetalleOfertaProveedorScreen() {
   if (isLoading || !offer) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator
-          size="large"
-          color="#E8321E"
-        />
+        <ActivityIndicator size="large" color="#E8321E" />
       </View>
     );
   }
 
   return (
-    <SafeAreaView
-      style={styles.safeArea}
-      edges={["top", "bottom"]}
-    >
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Ionicons
-            name="arrow-back"
-            size={24}
-            color="#111"
-          />
+          <Ionicons name="arrow-back" size={24} color="#111" />
         </TouchableOpacity>
         <View style={styles.headerTextContainer}>
-          <Text
-            style={styles.headerTitle}
-            numberOfLines={1}
-          >
+          <Text style={styles.headerTitle} numberOfLines={1}>
             {offer.event.title}
           </Text>
-          <Text style={styles.headerSubtitle}>Organiza: {offer.event.user?.name || "Organizador"}</Text>
+          <Text style={styles.headerSubtitle}>
+            Organiza: {offer.event.user?.name || "Organizador"}
+          </Text>
         </View>
       </View>
 
@@ -127,28 +138,20 @@ export default function DetalleOfertaProveedorScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionTag}>DETALLES DEL EVENTO</Text>
           <View style={styles.detailRow}>
-            <Ionicons
-              name="calendar-outline"
-              size={20}
-              color="#AAA"
-            />
-            <Text style={styles.detailText}>{formatearFecha(offer.event.event_date)}</Text>
+            <Ionicons name="calendar-outline" size={20} color="#AAA" />
+            <Text style={styles.detailText}>
+              {formatearFecha(offer.event.event_date)}
+            </Text>
           </View>
           <View style={styles.detailRow}>
-            <Ionicons
-              name="location-outline"
-              size={20}
-              color="#AAA"
-            />
+            <Ionicons name="location-outline" size={20} color="#AAA" />
             <Text style={styles.detailText}>{offer.event.location}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Ionicons
-              name="people-outline"
-              size={20}
-              color="#AAA"
-            />
-            <Text style={styles.detailText}>{offer.event.guests_count} personas</Text>
+            <Ionicons name="people-outline" size={20} color="#AAA" />
+            <Text style={styles.detailText}>
+              {offer.event.guests_count} personas
+            </Text>
           </View>
         </View>
 
@@ -156,22 +159,40 @@ export default function DetalleOfertaProveedorScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionTag}>BEBIDAS SOLICITADAS</Text>
           <View style={styles.descriptionBox}>
-            <Text style={styles.descriptionText}>{offer.event.requirements}</Text>
+            <Text style={styles.descriptionText}>
+              {offer.event.requirements}
+            </Text>
           </View>
-          <Text style={styles.footerNote}>Tu oferta debe cubrir todos los items listados.</Text>
+          <Text style={styles.footerNote}>
+            Tu oferta debe cubrir todos los items listados.
+          </Text>
         </View>
 
         {/* MI OFERTA */}
         {/* Si está aceptada, le sumamos el estilo 'acceptedCard' para el borde verde */}
-        <View style={[styles.card, offer.status === "aceptada" && styles.acceptedCard]}>
+        <View
+          style={[
+            styles.card,
+            offer.status === "aceptada" && styles.acceptedCard,
+          ]}
+        >
           <View style={styles.offerHeaderRow}>
             <Text style={styles.offerTitle}>Mi oferta</Text>
-            <Text style={[styles.statusBadge, { color: getStatusColor(offer.status) }]}>{getStatusText(offer.status)}</Text>
+            <Text
+              style={[
+                styles.statusBadge,
+                { color: getStatusColor(offer.status) },
+              ]}
+            >
+              {getStatusText(offer.status)}
+            </Text>
           </View>
 
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Precio ofertado</Text>
-            <Text style={styles.priceValue}>{formatearMoneda(offer.price)}</Text>
+            <Text style={styles.priceValue}>
+              {formatearMoneda(offer.price)}
+            </Text>
           </View>
 
           {offer.description ? (
@@ -182,18 +203,13 @@ export default function DetalleOfertaProveedorScreen() {
 
           {/* BOTÓN CONDICIONAL */}
           {offer.status === "aceptada" && (
-            <TouchableOpacity
-              style={styles.contactButton}
+            <Button
+              title="Ver datos del organizador"
+              variant="success"
+              icon="chevron-forward"
+              iconPosition="right"
               onPress={() => router.push(`/datos-organizador/${id}` as any)}
-            >
-              <Text style={styles.contactButtonText}>Ver datos del organizador</Text>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color="#fff"
-                style={{ marginLeft: 8 }}
-              />
-            </TouchableOpacity>
+            />
           )}
         </View>
       </ScrollView>
@@ -323,21 +339,5 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "bold",
     color: "#E8321E",
-  },
-
-  contactButton: {
-    flexDirection: "row",
-    backgroundColor: "#16A34A",
-    paddingVertical: 16,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  contactButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "center",
   },
 });

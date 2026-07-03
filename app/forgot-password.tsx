@@ -1,12 +1,13 @@
+import Button from "@/components/Button";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -75,12 +76,10 @@ export default function ForgotPasswordScreen() {
                 <Text style={styles.errorText}>{errorMsg}</Text>
               ) : null}
 
-              <TouchableOpacity
-                style={styles.button}
+              <Button
+                title="Enviar instrucciones"
                 onPress={handleSendInstructions}
-              >
-                <Text style={styles.buttonText}>Enviar instrucciones</Text>
-              </TouchableOpacity>
+              />
             </>
           ) : (
             <>
@@ -95,14 +94,10 @@ export default function ForgotPasswordScreen() {
                 Si no lo encontrás, revisá tu carpeta de spam.
               </Text>
 
-              <TouchableOpacity
-                style={styles.button}
+              <Button
+                title="Volver al inicio de sesión"
                 onPress={() => router.push("/login")}
-              >
-                <Text style={styles.buttonText}>
-                  Volver al inicio de sesión
-                </Text>
-              </TouchableOpacity>
+              />
             </>
           )}
         </View>
@@ -189,18 +184,5 @@ const styles = StyleSheet.create({
     color: "#C0392B",
     fontSize: 14,
     marginBottom: 16,
-  },
-
-  /* BOTÓN */
-  button: {
-    backgroundColor: "#E8321E",
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 });

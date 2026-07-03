@@ -1,3 +1,4 @@
+import Button from "@/components/Button";
 import { useRouter } from "expo-router";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -36,12 +37,10 @@ export default function OnboardingOrgScreen() {
           <View style={styles.dot} />
         </View>
 
-        <TouchableOpacity
-          style={styles.button}
+        <Button
+          title="Siguiente"
           onPress={() => router.push("/onboarding-proveedor")}
-        >
-          <Text style={styles.buttonText}>Siguiente</Text>
-        </TouchableOpacity>
+        />
       </View>
     </SafeAreaView>
   );
@@ -111,16 +110,5 @@ const styles = StyleSheet.create({
   dotActive: {
     backgroundColor: "#E8321E",
     width: 24,
-  },
-  button: {
-    backgroundColor: "#E8321E",
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 });

@@ -1,16 +1,16 @@
+import Button from "@/components/Button";
 import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Para guardar el token
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  ActivityIndicator, // Spinner de carga
   Image,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -173,17 +173,11 @@ export default function LoginScreen() {
         </TouchableOpacity>
 
         {/* Botón de inicio de sesión */}
-        <TouchableOpacity
-          style={styles.loginButton}
+        <Button
+          title="Iniciar sesión"
           onPress={handleLogin}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.loginButtonText}>Iniciar sesión</Text>
-          )}
-        </TouchableOpacity>
+          loading={isLoading}
+        />
       </View>
 
       {/* PIE DE PÁGINA (REGISTRO) */}
@@ -309,18 +303,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
-  // PIE DE PÁGINA (BOTON Y REGISTRO)
-  loginButton: {
-    backgroundColor: "#E8321E",
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  loginButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
+  // PIE DE PÁGINA (REGISTRO)
   footer: {
     alignItems: "center",
   },

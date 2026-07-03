@@ -1,6 +1,7 @@
+import Button from "@/components/Button";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ConfirmacionOfertaScreen() {
@@ -24,19 +25,18 @@ export default function ConfirmacionOfertaScreen() {
 
       {/* BOTONES DE ACCIÓN */}
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.primaryButton}
+        <Button
+          title="Ver mis ofertas"
+          variant="primary"
+          style={{ marginBottom: 12 }}
           onPress={() => router.replace("/(tabs-prov)/mis-ofertas")}
-        >
-          <Text style={styles.primaryButtonText}>Ver mis ofertas</Text>
-        </TouchableOpacity>
+        />
 
-        <TouchableOpacity
-          style={styles.secondaryButton}
+        <Button
+          title="Ver más eventos"
+          variant="secondary"
           onPress={() => router.replace("/(tabs-prov)/home-proveedor")}
-        >
-          <Text style={styles.secondaryButtonText}>Ver más eventos</Text>
-        </TouchableOpacity>
+        />
       </View>
     </SafeAreaView>
   );
@@ -77,32 +77,5 @@ const styles = StyleSheet.create({
 
   footer: {
     paddingBottom: 40,
-  },
-
-  primaryButton: {
-    backgroundColor: "#E8321E",
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  primaryButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-
-  secondaryButton: {
-    backgroundColor: "#fff",
-    paddingVertical: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    alignItems: "center",
-  },
-  secondaryButtonText: {
-    color: "#555",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 });

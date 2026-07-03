@@ -1,3 +1,4 @@
+import Button from "@/components/Button";
 import { useRouter } from "expo-router";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -34,12 +35,11 @@ export default function WelcomeScreen() {
           <View style={styles.dot} />
         </View>
 
-        <TouchableOpacity
-          style={styles.button}
+        <Button
+          title="Comenzar"
+          variant="black"
           onPress={() => router.push("/onboarding-organizador")}
-        >
-          <Text style={styles.buttonText}>Comenzar</Text>
-        </TouchableOpacity>
+        />
       </View>
     </SafeAreaView>
   );
@@ -101,16 +101,5 @@ const styles = StyleSheet.create({
   dotActive: {
     backgroundColor: "#E8321E",
     width: 24,
-  },
-  button: {
-    backgroundColor: "#111",
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 });

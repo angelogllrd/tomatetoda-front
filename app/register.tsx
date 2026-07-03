@@ -1,10 +1,10 @@
+import Button from "@/components/Button";
 import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -271,17 +271,11 @@ export default function RegisterScreen() {
           {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
 
           {/* BOTÓN REGISTRAR */}
-          <TouchableOpacity
-            style={styles.registerButton}
+          <Button
+            title="Crear cuenta"
             onPress={handleRegister}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.registerButtonText}>Crear cuenta</Text>
-            )}
-          </TouchableOpacity>
+            loading={isLoading}
+          />
 
           {/* ENLACE AL INICIO DE SESIÓN */}
           <TouchableOpacity
@@ -404,18 +398,6 @@ const styles = StyleSheet.create({
   },
 
   // BOTONES Y ENLACES
-  registerButton: {
-    backgroundColor: "#E8321E",
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  registerButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
   footerLink: {
     alignItems: "center",
     marginTop: 16,

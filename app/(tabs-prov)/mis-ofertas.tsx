@@ -265,11 +265,11 @@ const styles = StyleSheet.create({
   statBox: {
     flex: 1,
     backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
     marginHorizontal: 4,
   },
   statNumber: {
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   statLabel: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#999",
   },
 

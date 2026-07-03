@@ -1,9 +1,9 @@
+import Button from "@/components/Button";
 import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Modal,
   ScrollView,
@@ -11,7 +11,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -240,17 +240,11 @@ export default function PublicarEventoScreen() {
         {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
 
         {/* BOTÓN DE ACCIÓN */}
-        <TouchableOpacity
-          style={styles.publishButton}
+        <Button
+          title="Publicar evento"
           onPress={handlePublish}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.publishButtonText}>Publicar evento</Text>
-          )}
-        </TouchableOpacity>
+          loading={isLoading}
+        />
       </ScrollView>
 
       {/* MODAL PARA SELECCIONAR EL MES */}
@@ -387,18 +381,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 16,
     marginTop: -4,
-  },
-  publishButton: {
-    backgroundColor: "#E8321E",
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  publishButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 
   // MODAL DE MESES (Flat Design)
