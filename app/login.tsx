@@ -10,7 +10,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -99,7 +99,7 @@ export default function LoginScreen() {
       {/* ENCABEZADO Y LOGO */}
       <View style={styles.header}>
         <Image
-          source={require("@/assets/images/logo1.png")}
+          source={require("@/assets/images/logo.png")}
           style={styles.logo}
           resizeMode="contain"
         />
