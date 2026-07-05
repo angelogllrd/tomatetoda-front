@@ -1,4 +1,5 @@
 import Button from "@/components/Button";
+import HeaderBackButton from "@/components/HeaderBackButton";
 import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -11,7 +12,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -123,15 +124,7 @@ export default function PublicarEventoScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       {/* ENCABEZADO */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#111" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Publicar evento</Text>
-      </View>
+      <HeaderBackButton title="Publicar evento" />
 
       <ScrollView
         style={styles.mainContent}
@@ -304,27 +297,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 24,
     paddingBottom: 40,
-  },
-
-  // ENCABEZADO
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
-  },
-  backButton: {
-    padding: 4,
-    marginLeft: -4,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#111",
-    marginLeft: 16,
   },
 
   // FORMULARIO Y TEXTOS

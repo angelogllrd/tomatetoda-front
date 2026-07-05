@@ -1,14 +1,8 @@
 import Button from "@/components/Button";
-import { Ionicons } from "@expo/vector-icons";
+import HeaderBackButton from "@/components/HeaderBackButton";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ForgotPasswordScreen() {
@@ -39,15 +33,7 @@ export default function ForgotPasswordScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#111" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Recuperar contraseña</Text>
-      </View>
+      <HeaderBackButton title="Recuperar contraseña" />
 
       {/* RESTO DE LA PANTALLA GRIS */}
       <View style={styles.mainContent}>
@@ -110,27 +96,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#fff",
-  },
-
-  // HEADER (Igual al de registro)
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
-  },
-  backButton: {
-    padding: 4,
-    marginLeft: -4,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#111",
-    marginLeft: 16,
   },
 
   // CONTENIDO PRINCIPAL

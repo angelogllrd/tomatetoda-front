@@ -1,4 +1,5 @@
 import Button from "@/components/Button";
+import HeaderBackButton from "@/components/HeaderBackButton";
 import api from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -121,15 +122,7 @@ export default function RegisterScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* ENCABEZADO */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#111" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Crear cuenta</Text>
-      </View>
+      <HeaderBackButton title="Crear cuenta" />
 
       <View style={styles.mainContent}>
         {/* SELECTOR DE ROLES (TABS) */}
@@ -305,27 +298,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 24,
-  },
-
-  // ENCABEZADO
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
-  },
-  backButton: {
-    padding: 4,
-    marginLeft: -4,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#111",
-    marginLeft: 16,
   },
 
   // SELECTOR DE TABS (ROLES)
