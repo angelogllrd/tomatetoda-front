@@ -1,5 +1,12 @@
+import Avatar from "@/components/Avatar";
 import Button from "@/components/Button";
+import Card from "@/components/Card";
+import EmptyState from "@/components/EmptyState";
+import InfoRow from "@/components/InfoRow";
+import StatsRow from "@/components/StatsRow";
+import StatusBadge from "@/components/StatusBadge";
 import api from "@/services/api";
+import { formatearFecha } from "@/utils/formatters";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -9,7 +16,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -84,26 +90,6 @@ export default function HomeOrganizadorScreen() {
     fetchDatos();
   };
 
-  // Formateador de fechas (De "2026-07-15" a "15 jul 2026")
-  const formatearFecha = (fechaString: string) => {
-    const [year, month, day] = fechaString.split("-");
-    const meses = [
-      "ene",
-      "feb",
-      "mar",
-      "abr",
-      "may",
-      "jun",
-      "jul",
-      "ago",
-      "sep",
-      "oct",
-      "nov",
-      "dic",
-    ];
-    return `${day} ${meses[parseInt(month, 10) - 1]} ${year}`;
-  };
-
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -121,29 +107,19 @@ export default function HomeOrganizadorScreen() {
           <Text style={styles.name}>{userName}</Text>
           <Text style={styles.role}>Organizador</Text>
         </View>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {userName.charAt(0).toUpperCase()}
-          </Text>
-        </View>
+        <Avatar name={userName} size="md" />
       </View>
 
       {/* CONTENIDO FIJO (Estadísticas, Botón y Título) */}
       <View style={styles.fixedContent}>
-        <View style={styles.statsContainer}>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{stats.total}</Text>
-            <Text style={styles.statLabel}>Eventos</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{stats.pendientes}</Text>
-            <Text style={styles.statLabel}>Pendientes</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{stats.cerrados}</Text>
-            <Text style={styles.statLabel}>Cerrados</Text>
-          </View>
-        </View>
+        <StatsRow
+          style={{ marginBottom: 24 }}
+          stats={[
+            { label: "Eventos", value: stats.total },
+            { label: "Pendientes", value: stats.pendientes },
+            { label: "Cerrados", value: stats.cerrados },
+          ]}
+        />
 
         <Button
           title="Publicar nuevo evento"
@@ -167,50 +143,32 @@ export default function HomeOrganizadorScreen() {
         }
       >
         {eventos.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>Aún no publicaste eventos</Text>
-            <Text style={styles.emptySubtitle}>
-              Publicá tu primer evento y empezá a recibir ofertas
-            </Text>
-          </View>
+          <EmptyState
+            title="Aún no publicaste eventos"
+            subtitle="Publicá tu primer evento y empezá a recibir ofertas"
+          />
         ) : (
           eventos.map((evento) => (
-            <TouchableOpacity
+            <Card
               key={evento.id}
-              style={styles.eventCard}
               onPress={() => router.push(`/detalle-evento/${evento.id}`)}
             >
               <View style={styles.eventHeader}>
                 <Text style={styles.eventTitle}>{evento.title}</Text>
-                <Text
-                  style={[
-                    styles.badge, // Etiqueta "Abierto" o "Cerrado" arriba a la derecha
-                    evento.status === "abierto"
-                      ? styles.badgeOpen
-                      : styles.badgeClosed,
-                  ]}
-                >
-                  {evento.status.charAt(0).toUpperCase() +
-                    evento.status.slice(1)}
-                </Text>
+                <StatusBadge status={evento.status} />
               </View>
 
-              <View style={styles.eventInfoRow}>
-                <Ionicons name="calendar-outline" size={16} color="#999" />
-                <Text style={styles.eventInfoText}>
-                  {formatearFecha(evento.event_date)}
-                </Text>
-              </View>
-              <View style={styles.eventInfoRow}>
-                <Ionicons name="location-outline" size={16} color="#999" />
-                <Text style={styles.eventInfoText}>{evento.location}</Text>
-              </View>
-              <View style={styles.eventInfoRow}>
-                <Ionicons name="people-outline" size={16} color="#999" />
-                <Text style={styles.eventInfoText}>
-                  {evento.guests_count} personas
-                </Text>
-              </View>
+              <InfoRow
+                icon="calendar-outline"
+                text={formatearFecha(evento.event_date)}
+              />
+
+              <InfoRow icon="location-outline" text={evento.location} />
+
+              <InfoRow
+                icon="people-outline"
+                text={`${evento.guests_count} personas`}
+              />
 
               <View style={styles.eventFooter}>
                 {evento.status === "cerrado" ? (
@@ -235,7 +193,7 @@ export default function HomeOrganizadorScreen() {
                 )}
                 <Ionicons name="chevron-forward" size={20} color="#ccc" />
               </View>
-            </TouchableOpacity>
+            </Card>
           ))
         )}
       </ScrollView>
@@ -293,46 +251,6 @@ const styles = StyleSheet.create({
     color: "#999",
     marginTop: 2,
   },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#E8321E",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-
-  // ESTADÍSTICAS
-  statsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 24,
-  },
-  statBox: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    marginHorizontal: 4,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#111",
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: "#999",
-  },
 
   // TÍTULO DE SECCIÓN
   sectionTitle: {
@@ -343,37 +261,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
 
-  // ESTADOS VACÍOS (SIN RESULTADOS)
-  emptyState: {
-    backgroundColor: "#fff",
-    padding: 32,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    alignItems: "center",
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#111",
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: "#888",
-    textAlign: "center",
-    lineHeight: 20,
-  },
-
   // TARJETAS DE EVENTOS
-  eventCard: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    marginBottom: 16,
-  },
   eventHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -386,16 +274,6 @@ const styles = StyleSheet.create({
     color: "#111",
     flex: 1,
     paddingRight: 8,
-  },
-  eventInfoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  eventInfoText: {
-    fontSize: 14,
-    color: "#666",
-    marginLeft: 8,
   },
   eventFooter: {
     flexDirection: "row",
@@ -421,22 +299,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#AAA",
     fontWeight: "500",
-  },
-
-  // ETIQUETAS (BADGES)
-  badge: {
-    fontSize: 12,
-    fontWeight: "500",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  badgeOpen: {
-    color: "#16A34A",
-    backgroundColor: "#fff",
-  },
-  badgeClosed: {
-    color: "#999",
-    backgroundColor: "#fff",
   },
 });

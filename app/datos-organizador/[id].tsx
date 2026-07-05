@@ -1,5 +1,8 @@
 import Button from "@/components/Button";
+import Card from "@/components/Card";
+import HeaderBackButton from "@/components/HeaderBackButton";
 import api from "@/services/api";
+import { formatearMoneda } from "@/utils/formatters";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -10,7 +13,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -74,10 +76,6 @@ export default function DatosOrganizadorScreen() {
     Linking.openURL(`mailto:${offer.event.user.email}`);
   };
 
-  const formatearMoneda = (monto: number) => {
-    return "$" + monto.toLocaleString("es-AR");
-  };
-
   if (isLoading || !offer) {
     return (
       <View
@@ -94,22 +92,14 @@ export default function DatosOrganizadorScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       {/* HEADER */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#111" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Datos del organizador</Text>
-      </View>
+      <HeaderBackButton title="Datos del organizador" />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* TARJETA VERDE DE OFERTA ACEPTADA */}
-        <View style={styles.acceptedCard}>
+        <Card style={{ borderColor: "#BBF7D0" }}>
           <Text style={styles.acceptedTag}>Tu oferta fue aceptada</Text>
 
           <View style={styles.eventRow}>
@@ -129,10 +119,10 @@ export default function DatosOrganizadorScreen() {
               <Text style={styles.detailsText}>{offer.description}</Text>
             </View>
           ) : null}
-        </View>
+        </Card>
 
         {/* TARJETA DE DATOS DEL ORGANIZADOR */}
-        <View style={styles.providerCard}>
+        <Card>
           <View style={styles.providerHeader}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
@@ -170,7 +160,7 @@ export default function DatosOrganizadorScreen() {
               </Text>
             </View>
           </View>
-        </View>
+        </Card>
 
         {/* BOTONES DE ACCIÓN */}
         <Button
@@ -226,39 +216,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F5F5F5",
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
-  },
-  backButton: {
-    padding: 4,
-    marginLeft: -4,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#111",
-    marginLeft: 16,
-  },
 
   scrollContent: {
     padding: 24,
     paddingBottom: 40,
   },
 
-  acceptedCard: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#BBF7D0",
-    marginBottom: 20,
-  },
   acceptedTag: {
     color: "#16A34A",
     fontSize: 14,
@@ -305,14 +268,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  providerCard: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    marginBottom: 20,
-  },
   providerHeader: {
     flexDirection: "row",
     alignItems: "center",

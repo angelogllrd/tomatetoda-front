@@ -1,15 +1,18 @@
+import Avatar from "@/components/Avatar";
 import Button from "@/components/Button";
+import Card from "@/components/Card";
+import ProfileDataRow from "@/components/ProfileDataRow";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import api from "@/services/api";
-import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import { useRouter } from "expo-router";
+import React from "react";
 import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
-  View
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -24,27 +27,7 @@ type ProviderProfile = {
 export default function PerfilProveedorScreen() {
   const router = useRouter();
 
-  // ESTADOS
-  const [user, setUser] = useState<ProviderProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // OBTENER DATOS DEL BACKEND
-  const fetchUserData = async () => {
-    try {
-      const response = await api.get("/user");
-      setUser(response.data);
-    } catch (error) {
-      console.error("Error al cargar el perfil de proveedor:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchUserData();
-    }, []),
-  );
+  const { user, isLoading } = useUserProfile<ProviderProfile>();
 
   // LÓGICA DE CERRAR SESIÓN
   const handleLogout = async () => {
@@ -75,11 +58,7 @@ export default function PerfilProveedorScreen() {
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       {/* HEADER CON AVATAR */}
       <View style={styles.header}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {user.name.charAt(0).toUpperCase()}
-          </Text>
-        </View>
+        <Avatar name={user.name} size="lg" style={{ marginRight: 16 }} />
         <View style={styles.headerTextContainer}>
           <Text style={styles.name}>{user.name}</Text>
           <Text style={styles.role}>{user.company_name || "Proveedor"}</Text>
@@ -91,69 +70,29 @@ export default function PerfilProveedorScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* TARJETA DE DATOS PERSONALES */}
-        <View style={styles.card}>
-          <View style={styles.infoRow}>
-            <Ionicons
-              name="person-outline"
-              size={20}
-              color="#AAA"
-              style={styles.infoIcon}
-            />
-            <View>
-              <Text style={styles.infoLabel}>Nombre</Text>
-              <Text style={styles.infoValue}>{user.name}</Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.infoRow}>
-            <Ionicons
-              name="business-outline"
-              size={20}
-              color="#AAA"
-              style={styles.infoIcon}
-            />
-            <View>
-              <Text style={styles.infoLabel}>Negocio / empresa</Text>
-              <Text style={styles.infoValue}>
-                {user.company_name || "No especificado"}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.infoRow}>
-            <Ionicons
-              name="mail-outline"
-              size={20}
-              color="#AAA"
-              style={styles.infoIcon}
-            />
-            <View>
-              <Text style={styles.infoLabel}>Email</Text>
-              <Text style={styles.infoValue}>{user.email}</Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.infoRow}>
-            <Ionicons
-              name="call-outline"
-              size={20}
-              color="#AAA"
-              style={styles.infoIcon}
-            />
-            <View>
-              <Text style={styles.infoLabel}>Teléfono</Text>
-              <Text style={styles.infoValue}>
-                {user.phone || "No especificado"}
-              </Text>
-            </View>
-          </View>
-        </View>
+        <Card style={{ padding: 0 }}>
+          <ProfileDataRow
+            iconName="person-outline"
+            label="Nombre"
+            value={user.name}
+          />
+          <ProfileDataRow
+            iconName="business-outline"
+            label="Negocio / empresa"
+            value={user.company_name || "No especificado"}
+          />
+          <ProfileDataRow
+            iconName="mail-outline"
+            label="Email"
+            value={user.email}
+          />
+          <ProfileDataRow
+            iconName="call-outline"
+            label="Teléfono"
+            value={user.phone || "No especificado"}
+            showDivider={false}
+          />
+        </Card>
 
         {/* BOTÓN CERRAR SESIÓN */}
         <Button
@@ -182,20 +121,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E5E5E5",
   },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#E8321E",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  avatarText: {
-    color: "#fff",
-    fontSize: 28,
-    fontWeight: "bold",
-  },
   headerTextContainer: {
     flex: 1,
   },
@@ -213,35 +138,5 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 24,
     paddingBottom: 40,
-  },
-
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    marginBottom: 24,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-  },
-  infoIcon: {
-    marginRight: 16,
-    marginTop: 4,
-  },
-  infoLabel: {
-    fontSize: 13,
-    color: "#AAA",
-    marginBottom: 2,
-  },
-  infoValue: {
-    fontSize: 16,
-    color: "#111",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#EAEAEA",
   },
 });

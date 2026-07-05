@@ -1,4 +1,9 @@
+import Avatar from "@/components/Avatar";
+import Card from "@/components/Card";
+import EmptyState from "@/components/EmptyState";
+import InfoRow from "@/components/InfoRow";
 import api from "@/services/api";
+import { formatearFecha, getDaysRemaining } from "@/utils/formatters";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -9,7 +14,6 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -81,38 +85,6 @@ export default function HomeProveedorScreen() {
       evento.location.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const getDaysRemaining = (dateString: string) => {
-    const eventDate = new Date(dateString + "T00:00:00");
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const diffTime = eventDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return "Hoy";
-    if (diffDays === 1) return "Mañana";
-    return `${diffDays}d restantes`;
-  };
-
-  const formatearFecha = (fechaString: string) => {
-    const [year, month, day] = fechaString.split("-");
-    const meses = [
-      "ene",
-      "feb",
-      "mar",
-      "abr",
-      "may",
-      "jun",
-      "jul",
-      "ago",
-      "sep",
-      "oct",
-      "nov",
-      "dic",
-    ];
-    return `${day} ${meses[parseInt(month, 10) - 1]} ${year}`;
-  };
-
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -130,11 +102,7 @@ export default function HomeProveedorScreen() {
           <Text style={styles.name}>{user.name}</Text>
           <Text style={styles.role}>{user.company_name}</Text>
         </View>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {user.name.charAt(0).toUpperCase()}
-          </Text>
-        </View>
+        <Avatar name={user.name} size="md" />
       </View>
 
       {/* BUSCADOR */}
@@ -173,18 +141,15 @@ export default function HomeProveedorScreen() {
       >
         {filteredEvents.length === 0 ? (
           /* ESTADO VACÍO (SIN RESULTADOS) */
-          <View style={styles.emptyStateCard}>
-            <Text style={styles.emptyStateTitle}>Sin resultados</Text>
-            <Text style={styles.emptyStateSub}>
-              No hay eventos disponibles para ofertar.
-            </Text>
-          </View>
+          <EmptyState
+            title="Sin resultados"
+            subtitle="No hay eventos disponibles para ofertar."
+          />
         ) : (
           filteredEvents.map((evento) => (
             /* TARJETA DE EVENTO */
-            <TouchableOpacity
+            <Card
               key={evento.id}
-              style={styles.eventCard}
               onPress={() =>
                 router.push(`/evento-disponible/${evento.id}` as any)
               }
@@ -198,20 +163,17 @@ export default function HomeProveedorScreen() {
                 </Text>
               </View>
 
-              <View style={styles.infoRow}>
-                <Ionicons name="calendar-outline" size={16} color="#AAA" />
-                <Text style={styles.infoText}>
-                  {formatearFecha(evento.date)}
-                </Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Ionicons name="location-outline" size={16} color="#AAA" />
-                <Text style={styles.infoText}>{evento.location}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Ionicons name="people-outline" size={16} color="#AAA" />
-                <Text style={styles.infoText}>{evento.people} personas</Text>
-              </View>
+              <InfoRow
+                icon="calendar-outline"
+                text={formatearFecha(evento.date)}
+              />
+
+              <InfoRow icon="location-outline" text={evento.location} />
+
+              <InfoRow
+                icon="people-outline"
+                text={`${evento.people} personas`}
+              />
 
               <View style={styles.descriptionBox}>
                 <Text style={styles.descriptionText} numberOfLines={2}>
@@ -226,7 +188,7 @@ export default function HomeProveedorScreen() {
                   <Ionicons name="chevron-forward" size={16} color="#E8321E" />
                 </View>
               </View>
-            </TouchableOpacity>
+            </Card>
           ))
         )}
       </ScrollView>
@@ -280,19 +242,6 @@ const styles = StyleSheet.create({
     color: "#888",
     marginTop: 2,
   },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#E8321E",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
 
   // BUSCADOR Y LISTA
   searchContainer: {
@@ -334,35 +283,6 @@ const styles = StyleSheet.create({
   },
 
   // TARJETAS
-  emptyStateCard: {
-    backgroundColor: "#fff",
-    paddingVertical: 40,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  emptyStateTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#111",
-    marginBottom: 8,
-  },
-  emptyStateSub: {
-    fontSize: 14,
-    color: "#888",
-    textAlign: "center",
-  },
-  eventCard: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    marginBottom: 16,
-  },
   eventHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -383,16 +303,6 @@ const styles = StyleSheet.create({
   },
 
   // CONTENIDO DE LA TARJETA
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  infoText: {
-    fontSize: 14,
-    color: "#666",
-    marginLeft: 8,
-  },
   descriptionBox: {
     backgroundColor: "#F8F8F8",
     padding: 12,

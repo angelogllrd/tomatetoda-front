@@ -1,4 +1,10 @@
+import Card from "@/components/Card";
+import EmptyState from "@/components/EmptyState";
+import InfoRow from "@/components/InfoRow";
+import StatsRow from "@/components/StatsRow";
+import StatusBadge from "@/components/StatusBadge";
 import api from "@/services/api";
+import { formatearFecha, formatearMoneda } from "@/utils/formatters";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -8,7 +14,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -67,45 +72,6 @@ export default function MisOfertasScreen() {
   const pendientes = offers.filter((o) => o.status === "pendiente").length;
   const aceptadas = offers.filter((o) => o.status === "aceptada").length;
 
-  // Función auxiliar para pintar el texto del estado según corresponda
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "aceptada":
-        return "#16A34A"; // Verde
-      case "pendiente":
-        return "#B45309"; // Naranja
-      case "rechazada":
-        return "#AAA"; // Gris
-      case "caducada":
-        return "#AAA"; // Gris
-      default:
-        return "#333";
-    }
-  };
-
-  const formatearFecha = (fechaString: string) => {
-    const [year, month, day] = fechaString.split("-");
-    const meses = [
-      "ene",
-      "feb",
-      "mar",
-      "abr",
-      "may",
-      "jun",
-      "jul",
-      "ago",
-      "sep",
-      "oct",
-      "nov",
-      "dic",
-    ];
-    return `${parseInt(day, 10)} ${meses[parseInt(month, 10) - 1]} ${year}`;
-  };
-
-  const formatearMoneda = (monto: number) => {
-    return "$" + monto.toLocaleString("es-AR");
-  };
-
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -121,20 +87,13 @@ export default function MisOfertasScreen() {
 
       {/* ESTADÍSTICAS */}
       <View style={styles.statsContainer}>
-        <View style={styles.statBox}>
-          <Text style={styles.statNumber}>{total}</Text>
-          <Text style={styles.statLabel}>Total</Text>
-        </View>
-
-        <View style={styles.statBox}>
-          <Text style={styles.statNumber}>{pendientes}</Text>
-          <Text style={styles.statLabel}>Pendientes</Text>
-        </View>
-
-        <View style={styles.statBox}>
-          <Text style={styles.statNumber}>{aceptadas}</Text>
-          <Text style={styles.statLabel}>Aceptadas</Text>
-        </View>
+        <StatsRow
+          stats={[
+            { label: "Total", value: total },
+            { label: "Pendientes", value: pendientes },
+            { label: "Aceptadas", value: aceptadas },
+          ]}
+        />
       </View>
 
       {/* LISTADO DE OFERTAS */}
@@ -150,21 +109,17 @@ export default function MisOfertasScreen() {
         }
       >
         {offers.length === 0 ? (
-          <View style={styles.emptyStateCard}>
-            <Text style={styles.emptyStateTitle}>Sin ofertas</Text>
-            <Text style={styles.emptyStateSub}>
-              Aún no enviaste ninguna propuesta a los organizadores.
-            </Text>
-          </View>
+          <EmptyState
+            title="Sin ofertas"
+            subtitle="Aún no enviaste ninguna propuesta a los organizadores."
+          />
         ) : (
           offers.map((oferta) => (
-            <TouchableOpacity
+            <Card
               key={oferta.id}
-              style={[
-                styles.offerCard,
-                oferta.status === "caducada" && { opacity: 0.5 }, // Efecto sutil "apagado" para las caducadas
-              ]}
-              // Nos redirige al detalle interno de la oferta
+              style={
+                oferta.status === "caducada" ? { opacity: 0.5 } : undefined
+              }
               onPress={() =>
                 router.push(`/detalle-oferta-proveedor/${oferta.id}` as any)
               }
@@ -174,26 +129,15 @@ export default function MisOfertasScreen() {
                 <Text style={styles.eventTitle} numberOfLines={1}>
                   {oferta.event.title}
                 </Text>
-                <Text
-                  style={[
-                    styles.statusBadge,
-                    { color: getStatusColor(oferta.status) },
-                  ]}
-                >
-                  {oferta.status.charAt(0).toUpperCase() +
-                    oferta.status.slice(1)}
-                </Text>
+                <StatusBadge status={oferta.status} />
               </View>
 
               {/* FECHA Y PERSONAS */}
-              <View style={styles.subtitleRow}>
-                <Ionicons name="calendar-outline" size={14} color="#AAA" />
-                <Text style={styles.eventSubtitle}>
-                  {" "}
-                  {formatearFecha(oferta.event.event_date)} ·{" "}
-                  {oferta.event.guests_count} personas
-                </Text>
-              </View>
+              <InfoRow
+                icon="calendar-outline"
+                text={`${formatearFecha(oferta.event.event_date)} · ${oferta.event.guests_count} personas`}
+                style={{ marginBottom: 16 }}
+              />
 
               {/* FILA DE PRECIO */}
               <View style={styles.priceRow}>
@@ -219,7 +163,7 @@ export default function MisOfertasScreen() {
                   <Ionicons name="chevron-forward" size={14} color="#E8321E" />
                 </View>
               </View>
-            </TouchableOpacity>
+            </Card>
           ))
         )}
       </ScrollView>
@@ -255,66 +199,14 @@ const styles = StyleSheet.create({
 
   // ESTADÍSTICAS
   statsContainer: {
-    flexDirection: "row",
     paddingHorizontal: 24,
     paddingBottom: 20,
     backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderBottomColor: "#E5E5E5",
   },
-  statBox: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    marginHorizontal: 4,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#111",
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: "#999",
-  },
-
-  // ESTADO VACÍO
-  emptyStateCard: {
-    backgroundColor: "#fff",
-    paddingVertical: 40,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  emptyStateTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#111",
-    marginBottom: 8,
-  },
-  emptyStateSub: {
-    fontSize: 14,
-    color: "#888",
-    textAlign: "center",
-  },
 
   // TARJETAS
-  offerCard: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    marginBottom: 16,
-  },
   cardHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -327,19 +219,6 @@ const styles = StyleSheet.create({
     color: "#111",
     flex: 1,
     paddingRight: 12,
-  },
-  statusBadge: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  subtitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  eventSubtitle: {
-    fontSize: 14,
-    color: "#888",
   },
 
   // PRECIO Y DESCRIPCIÓN
