@@ -1,5 +1,11 @@
 import Button from "@/components/Button";
+import Card from "@/components/Card";
+import EmptyState from "@/components/EmptyState";
+import HeaderBackButton from "@/components/HeaderBackButton";
+import InfoRow from "@/components/InfoRow";
+import StatusBadge from "@/components/StatusBadge";
 import api from "@/services/api";
+import { formatearFecha, formatearMoneda } from "@/utils/formatters";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -9,7 +15,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -106,30 +111,6 @@ export default function DetalleEventoScreen() {
     }
   };
 
-  // FORMATEADORES
-  const formatearFecha = (fechaString: string) => {
-    const [year, month, day] = fechaString.split("-");
-    const meses = [
-      "enero",
-      "febrero",
-      "marzo",
-      "abril",
-      "mayo",
-      "junio",
-      "julio",
-      "agosto",
-      "septiembre",
-      "octubre",
-      "noviembre",
-      "diciembre",
-    ];
-    return `${day} de ${meses[parseInt(month, 10) - 1]} de ${year}`;
-  };
-
-  const formatearMoneda = (monto: number) => {
-    return "$" + monto.toLocaleString("es-AR");
-  };
-
   if (isLoading || !event) {
     return (
       <View style={styles.loadingContainer}>
@@ -146,78 +127,57 @@ export default function DetalleEventoScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       {/* HEADER */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#111" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {event.title}
-        </Text>
-        <Text
-          style={[
-            styles.statusBadge,
-            event.status === "cerrado"
-              ? styles.statusBadgeClosed
-              : styles.statusBadgeOpen,
-          ]}
-        >
-          {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-        </Text>
-      </View>
+      <HeaderBackButton
+        title={event.title}
+        rightElement={<StatusBadge status={event.status} />}
+      />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* CAJA DE DETALLES DEL EVENTO */}
-        <View style={styles.detailsCard}>
+        <Card>
           <Text style={styles.sectionTag}>DETALLES DEL EVENTO</Text>
 
-          <View style={styles.infoRow}>
-            <Ionicons
-              name="calendar-outline"
-              size={18}
-              color="#666"
-              style={styles.infoIcon}
-            />
-            <Text style={styles.infoText}>
-              {formatearFecha(event.event_date)}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Ionicons
-              name="location-outline"
-              size={18}
-              color="#666"
-              style={styles.infoIcon}
-            />
-            <Text style={styles.infoText}>{event.location}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Ionicons
-              name="people-outline"
-              size={18}
-              color="#666"
-              style={styles.infoIcon}
-            />
-            <Text style={styles.infoText}>{event.guests_count} personas</Text>
-          </View>
+          <InfoRow
+            icon="calendar-outline"
+            text={formatearFecha(event.event_date)}
+            iconSize={18}
+            iconColor="#666"
+            textColor="#333"
+            textSize={16}
+          />
+          <InfoRow
+            icon="location-outline"
+            text={event.location}
+            iconSize={18}
+            iconColor="#666"
+            textColor="#333"
+            textSize={16}
+          />
+
+          <InfoRow
+            icon="people-outline"
+            text={`${event.guests_count} personas`}
+            iconSize={18}
+            iconColor="#666"
+            textColor="#333"
+            textSize={16}
+          />
 
           <View style={styles.divider} />
 
           <Text style={styles.descriptionLabel}>Bebidas solicitadas</Text>
           <Text style={styles.descriptionText}>{event.requirements}</Text>
-        </View>
+        </Card>
 
         {/* SECCIÓN DE ESTADOS Y OFERTAS
         -------------------------------- */}
 
         {event.status === "cerrado" && acceptedOffer ? (
           /* 1. ESTADO: OFERTA ACEPTADA (ÉXITO) */
-          <View style={styles.acceptedOfferCard}>
+          <Card style={{ borderColor: "#BBF7D0" }}>
             <Text style={styles.acceptedOfferTag}>Oferta aceptada</Text>
             <View style={styles.offerHeaderRow}>
               <View style={{ flex: 1 }}>
@@ -242,24 +202,20 @@ export default function DetalleEventoScreen() {
                 router.push(`/datos-proveedor/${acceptedOffer.id}`)
               }
             />
-          </View>
+          </Card>
         ) : event.status === "cerrado" && !acceptedOffer ? (
           /* 2. ESTADO VACÍO: EVENTO CADUCADO */
-          <View style={styles.expiredStateCard}>
-            <Text style={styles.expiredTitle}>Evento caducado</Text>
-            <Text style={styles.expiredSub}>
-              La fecha límite de este evento ya pasó y no se concretó ninguna
-              oferta
-            </Text>
-          </View>
+          <EmptyState
+            variant="expired"
+            title="Evento caducado"
+            subtitle="La fecha límite de este evento ya pasó y no se concretó ninguna oferta"
+          />
         ) : event.offers.length === 0 ? (
           /* 3. ESTADO: ESPERANDO OFERTAS (VACÍO) */
-          <View style={styles.emptyOffersState}>
-            <Text style={styles.emptyOffersTitle}>Esperando ofertas</Text>
-            <Text style={styles.emptyOffersSub}>
-              Los proveedores verán tu evento y{"\n"}comenzarán a ofertar
-            </Text>
-          </View>
+          <EmptyState
+            title="Esperando ofertas"
+            subtitle="Los proveedores verán tu evento y comenzarán a ofertar"
+          />
         ) : (
           /* 4. ESTADO: MOSTRAR OFERTAS PENDIENTES / RECHAZADAS */
           <>
@@ -276,7 +232,7 @@ export default function DetalleEventoScreen() {
 
                 {/* OFERTAS PENDIENTES */}
                 {pendingOffers.map((offer) => (
-                  <View key={offer.id} style={styles.offerCard}>
+                  <Card key={offer.id}>
                     <View style={styles.offerHeaderRow}>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.providerName}>
@@ -352,7 +308,7 @@ export default function DetalleEventoScreen() {
                         />
                       </View>
                     )}
-                  </View>
+                  </Card>
                 ))}
               </>
             )}
@@ -404,66 +360,13 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  // HEADER
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
-  },
-  backButton: {
-    padding: 4,
-    marginLeft: -4,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#111",
-    marginLeft: 16,
-    marginRight: 8,
-  },
-  statusBadge: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  statusBadgeOpen: {
-    color: "#16A34A",
-  },
-  statusBadgeClosed: {
-    color: "#999",
-  },
-
   // TARJETA DE DETALLES DEL EVENTO
-  detailsCard: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    marginBottom: 32,
-  },
   sectionTag: {
     fontSize: 12,
     fontWeight: "bold",
     color: "#999",
     letterSpacing: 1,
     marginBottom: 16,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  infoIcon: {
-    marginRight: 12,
-  },
-  infoText: {
-    fontSize: 16,
-    color: "#333",
   },
   divider: {
     height: 1,
@@ -499,14 +402,6 @@ const styles = StyleSheet.create({
   },
 
   // TARJETAS DE OFERTAS PENDIENTES
-  offerCard: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    marginBottom: 16,
-  },
   offerHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -591,14 +486,6 @@ const styles = StyleSheet.create({
   },
 
   // ESTADO: OFERTA ACEPTADA
-  acceptedOfferCard: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#BBF7D0",
-    marginTop: 8,
-  },
   acceptedOfferTag: {
     color: "#16A34A",
     fontSize: 14,
@@ -609,51 +496,5 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: "#16A34A",
-  },
-
-  // ESTADO: ESPERANDO OFERTAS (VACÍO)
-  emptyOffersState: {
-    backgroundColor: "#fff",
-    paddingVertical: 40,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    alignItems: "center",
-  },
-  emptyOffersTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#111",
-    marginBottom: 8,
-  },
-  emptyOffersSub: {
-    fontSize: 14,
-    color: "#888",
-    textAlign: "center",
-    lineHeight: 22,
-  },
-
-  // ESTADO: EVENTO CADUCADO
-  expiredStateCard: {
-    backgroundColor: "#FAFAFA",
-    paddingVertical: 40,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#EAEAEA",
-    alignItems: "center",
-  },
-  expiredTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#999",
-    marginBottom: 8,
-  },
-  expiredSub: {
-    fontSize: 14,
-    color: "#999",
-    textAlign: "center",
-    lineHeight: 22,
   },
 });

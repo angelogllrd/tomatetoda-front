@@ -1,6 +1,10 @@
 import Button from "@/components/Button";
+import Card from "@/components/Card";
+import HeaderBackButton from "@/components/HeaderBackButton";
+import InfoRow from "@/components/InfoRow";
+import StatusBadge from "@/components/StatusBadge";
 import api from "@/services/api";
-import { Ionicons } from "@expo/vector-icons";
+import { formatearFecha, formatearMoneda } from "@/utils/formatters";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -9,7 +13,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -59,49 +62,6 @@ export default function DetalleOfertaProveedorScreen() {
     if (id) fetchOfferDetails();
   }, [id]);
 
-  // FORMATEADORES
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "aceptada":
-        return "#16A34A"; // Verde
-      case "pendiente":
-        return "#B45309"; // Naranja
-      case "rechazada":
-        return "#AAA"; // Gris
-      case "caducada":
-        return "#AAA"; // Gris
-      default:
-        return "#333";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    return status.charAt(0).toUpperCase() + status.slice(1);
-  };
-
-  const formatearFecha = (fechaString: string) => {
-    const [year, month, day] = fechaString.split("-");
-    const meses = [
-      "enero",
-      "febrero",
-      "marzo",
-      "abril",
-      "mayo",
-      "junio",
-      "julio",
-      "agosto",
-      "septiembre",
-      "octubre",
-      "noviembre",
-      "diciembre",
-    ];
-    return `${parseInt(day, 10)} de ${meses[parseInt(month, 10) - 1]} de ${year}`;
-  };
-
-  const formatearMoneda = (monto: number) => {
-    return "$" + monto.toLocaleString("es-AR");
-  };
-
   if (isLoading || !offer) {
     return (
       <View style={styles.loadingContainer}>
@@ -113,50 +73,49 @@ export default function DetalleOfertaProveedorScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       {/* HEADER */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#111" />
-        </TouchableOpacity>
-        <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {offer.event.title}
-          </Text>
-          <Text style={styles.headerSubtitle}>
-            Organiza: {offer.event.user?.name || "Organizador"}
-          </Text>
-        </View>
-      </View>
+      <HeaderBackButton
+        title={offer.event.title}
+        subtitle={`Organiza: ${offer.event.user?.name || "Organizador"}`}
+      />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* DETALLES DEL EVENTO */}
-        <View style={styles.card}>
+        <Card>
           <Text style={styles.sectionTag}>DETALLES DEL EVENTO</Text>
-          <View style={styles.detailRow}>
-            <Ionicons name="calendar-outline" size={20} color="#AAA" />
-            <Text style={styles.detailText}>
-              {formatearFecha(offer.event.event_date)}
-            </Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Ionicons name="location-outline" size={20} color="#AAA" />
-            <Text style={styles.detailText}>{offer.event.location}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Ionicons name="people-outline" size={20} color="#AAA" />
-            <Text style={styles.detailText}>
-              {offer.event.guests_count} personas
-            </Text>
-          </View>
-        </View>
+
+          <InfoRow
+            icon="calendar-outline"
+            text={formatearFecha(offer.event.event_date)}
+            iconSize={18}
+            iconColor="#666"
+            textColor="#333"
+            textSize={16}
+          />
+
+          <InfoRow
+            icon="location-outline"
+            text={offer.event.location}
+            iconSize={18}
+            iconColor="#666"
+            textColor="#333"
+            textSize={16}
+          />
+
+          <InfoRow
+            icon="people-outline"
+            text={`${offer.event.guests_count} personas`}
+            iconSize={18}
+            iconColor="#666"
+            textColor="#333"
+            textSize={16}
+          />
+        </Card>
 
         {/* BEBIDAS SOLICITADAS */}
-        <View style={styles.card}>
+        <Card>
           <Text style={styles.sectionTag}>BEBIDAS SOLICITADAS</Text>
           <View style={styles.descriptionBox}>
             <Text style={styles.descriptionText}>
@@ -166,26 +125,17 @@ export default function DetalleOfertaProveedorScreen() {
           <Text style={styles.footerNote}>
             Tu oferta debe cubrir todos los items listados.
           </Text>
-        </View>
+        </Card>
 
         {/* MI OFERTA */}
-        {/* Si está aceptada, le sumamos el estilo 'acceptedCard' para el borde verde */}
-        <View
-          style={[
-            styles.card,
-            offer.status === "aceptada" && styles.acceptedCard,
-          ]}
+        <Card
+          style={
+            offer.status === "aceptada" ? { borderColor: "#BBF7D0" } : undefined
+          }
         >
           <View style={styles.offerHeaderRow}>
             <Text style={styles.offerTitle}>Mi oferta</Text>
-            <Text
-              style={[
-                styles.statusBadge,
-                { color: getStatusColor(offer.status) },
-              ]}
-            >
-              {getStatusText(offer.status)}
-            </Text>
+            <StatusBadge status={offer.status} />
           </View>
 
           <View style={styles.priceRow}>
@@ -211,7 +161,7 @@ export default function DetalleOfertaProveedorScreen() {
               onPress={() => router.push(`/datos-organizador/${id}` as any)}
             />
           )}
-        </View>
+        </Card>
       </ScrollView>
     </SafeAreaView>
   );
@@ -229,68 +179,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
   },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
-  },
-  backButton: {
-    padding: 4,
-    marginRight: 12,
-    marginLeft: -4,
-  },
-  headerTextContainer: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#111",
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "#888",
-    marginTop: 2,
-  },
-
   scrollContent: {
     padding: 24,
     paddingBottom: 40,
   },
 
-  card: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    marginBottom: 16,
-  },
-  acceptedCard: {
-    borderColor: "#BBF7D0",
-    borderWidth: 1,
-  },
   sectionTag: {
     fontSize: 12,
     fontWeight: "bold",
     color: "#999",
     letterSpacing: 1,
     marginBottom: 16,
-  },
-
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  detailText: {
-    fontSize: 16,
-    color: "#333",
-    marginLeft: 12,
   },
 
   descriptionBox: {
@@ -319,10 +218,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#111",
-  },
-  statusBadge: {
-    fontSize: 14,
-    fontWeight: "500",
   },
 
   priceRow: {

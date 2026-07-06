@@ -1,6 +1,6 @@
 import Button from "@/components/Button";
+import HeaderBackButton from "@/components/HeaderBackButton";
 import api from "@/services/api";
-import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -10,7 +10,6 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -100,20 +99,10 @@ export default function EnviarOfertaScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       {/* HEADER */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#111" />
-        </TouchableOpacity>
-        <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle}>Enviar oferta</Text>
-          <Text style={styles.headerSubtitle} numberOfLines={1}>
-            Para: {event.title}
-          </Text>
-        </View>
-      </View>
+      <HeaderBackButton
+        title="Enviar oferta"
+        subtitle={`Para: ${event.title}`}
+      />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -223,35 +212,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 24,
     paddingBottom: 40,
-  },
-
-  // ENCABEZADO
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
-  },
-  backButton: {
-    padding: 4,
-    marginRight: 12,
-    marginLeft: -4,
-  },
-  headerTextContainer: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#111",
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "#888",
-    marginTop: 2,
   },
 
   // TARJETAS Y CONTENIDO

@@ -1,6 +1,9 @@
 import Button from "@/components/Button";
+import Card from "@/components/Card";
+import HeaderBackButton from "@/components/HeaderBackButton";
+import InfoRow from "@/components/InfoRow";
 import api from "@/services/api";
-import { Ionicons } from "@expo/vector-icons";
+import { formatearFecha } from "@/utils/formatters";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -9,7 +12,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -51,26 +53,6 @@ export default function EventoDisponibleScreen() {
     if (id) fetchEvent();
   }, [id]);
 
-  // FORMATEADORES
-  const formatearFecha = (fechaString: string) => {
-    const [year, month, day] = fechaString.split("-");
-    const meses = [
-      "enero",
-      "febrero",
-      "marzo",
-      "abril",
-      "mayo",
-      "junio",
-      "julio",
-      "agosto",
-      "septiembre",
-      "octubre",
-      "noviembre",
-      "diciembre",
-    ];
-    return `${parseInt(day, 10)} de ${meses[parseInt(month, 10) - 1]} de ${year}`;
-  };
-
   if (isLoading || !event) {
     return (
       <View style={styles.loadingContainer}>
@@ -82,47 +64,49 @@ export default function EventoDisponibleScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       {/* HEADER */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#111" />
-        </TouchableOpacity>
-        <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {event.title}
-          </Text>
-          <Text style={styles.headerSubtitle}>Organiza: {event.organizer}</Text>
-        </View>
-      </View>
+      <HeaderBackButton
+        title={event.title}
+        subtitle={`Organiza: ${event.organizer}`}
+      />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* DETALLES DEL EVENTO */}
-        <View style={styles.card}>
+        <Card>
           <Text style={styles.sectionTag}>DETALLES DEL EVENTO</Text>
 
-          <View style={styles.detailRow}>
-            <Ionicons name="calendar-outline" size={20} color="#AAA" />
-            <Text style={styles.detailText}>{formatearFecha(event.date)}</Text>
-          </View>
+          <InfoRow
+            icon="calendar-outline"
+            text={formatearFecha(event.date)}
+            iconSize={18}
+            iconColor="#666"
+            textColor="#333"
+            textSize={16}
+          />
 
-          <View style={styles.detailRow}>
-            <Ionicons name="location-outline" size={20} color="#AAA" />
-            <Text style={styles.detailText}>{event.location}</Text>
-          </View>
+          <InfoRow
+            icon="location-outline"
+            text={event.location}
+            iconSize={18}
+            iconColor="#666"
+            textColor="#333"
+            textSize={16}
+          />
 
-          <View style={styles.detailRow}>
-            <Ionicons name="people-outline" size={20} color="#AAA" />
-            <Text style={styles.detailText}>{event.people} personas</Text>
-          </View>
-        </View>
+          <InfoRow
+            icon="people-outline"
+            text={`${event.people} personas`}
+            iconSize={18}
+            iconColor="#666"
+            textColor="#333"
+            textSize={16}
+          />
+        </Card>
 
         {/* BEBIDAS SOLICITADAS */}
-        <View style={styles.card}>
+        <Card>
           <Text style={styles.sectionTag}>BEBIDAS SOLICITADAS</Text>
 
           <View style={styles.descriptionBox}>
@@ -132,7 +116,7 @@ export default function EventoDisponibleScreen() {
           <Text style={styles.footerNote}>
             Tu oferta debe cubrir todos los items listados.
           </Text>
-        </View>
+        </Card>
 
         {/* BOTÓN DE ACCIÓN */}
         <Button
@@ -161,60 +145,13 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  // ENCABEZADO
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
-  },
-  backButton: {
-    padding: 4,
-    marginRight: 12,
-    marginLeft: -4,
-  },
-  headerTextContainer: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#111",
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "#888",
-    marginTop: 2,
-  },
-
   // TARJETAS
-  card: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    marginBottom: 20,
-  },
   sectionTag: {
     fontSize: 12,
     fontWeight: "bold",
     color: "#999",
     letterSpacing: 1,
     marginBottom: 16,
-  },
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  detailText: {
-    fontSize: 16,
-    color: "#333",
-    marginLeft: 12,
   },
 
   // CAJA DE DESCRIPCIÓN
