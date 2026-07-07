@@ -207,7 +207,7 @@ export default function DatosProveedorScreen() {
           title="Volver al inicio"
           variant="secondary"
           style={{ marginTop: 8 }}
-          onPress={() => router.push("/(tabs-org)/home-organizador")}
+          onPress={() => router.push("/home-organizador")}
         />
       </ScrollView>
     </SafeAreaView>

@@ -102,9 +102,9 @@ export default function RegisterScreen() {
 
       // Redirigimos al home correspondiente
       if (user.role === "organizador") {
-        router.replace("/(tabs-org)/home-organizador");
+        router.replace("/home-organizador");
       } else if (user.role === "proveedor") {
-        router.replace("/(tabs-prov)/home-proveedor");
+        router.replace("/home-proveedor");
       }
     } catch (error: any) {
       // Si Laravel devuelve error (ej. email ya registrado), lo mostramos

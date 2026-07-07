@@ -74,9 +74,9 @@ export default function LoginScreen() {
 
       // Redirección según el rol de la base de datos
       if (user.role === "organizador") {
-        router.replace("/(tabs-org)/home-organizador");
+        router.replace("/home-organizador");
       } else if (user.role === "proveedor") {
-        router.replace("/(tabs-prov)/home-proveedor");
+        router.replace("/home-proveedor");
       } else {
         setErrorMsg("Rol no reconocido en la aplicación.");
       }

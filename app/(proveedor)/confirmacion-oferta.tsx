@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function ConfirmacionPublicacionScreen() {
+export default function ConfirmacionOfertaScreen() {
   const router = useRouter();
 
   return (
@@ -16,18 +16,26 @@ export default function ConfirmacionPublicacionScreen() {
         </View>
 
         {/* TEXTOS */}
-        <Text style={styles.title}>Evento publicado</Text>
+        <Text style={styles.title}>Oferta enviada</Text>
         <Text style={styles.subtitle}>
-          Tu evento ya está visible para los proveedores. Pronto recibirás
-          ofertas.
+          El organizador verá tu propuesta. Si la acepta, recibirás sus datos de
+          contacto.
         </Text>
       </View>
 
       {/* BOTONES DE ACCIÓN */}
       <View style={styles.footer}>
         <Button
-          title="Ver mis eventos"
-          onPress={() => router.replace("/(tabs-org)/home-organizador")}
+          title="Ver mis ofertas"
+          variant="primary"
+          style={{ marginBottom: 12 }}
+          onPress={() => router.replace("/mis-ofertas")}
+        />
+
+        <Button
+          title="Ver más eventos"
+          variant="secondary"
+          onPress={() => router.replace("/home-proveedor")}
         />
       </View>
     </SafeAreaView>
@@ -35,25 +43,22 @@ export default function ConfirmacionPublicacionScreen() {
 }
 
 const styles = StyleSheet.create({
-  // CONTENEDORES PRINCIPALES
   safeArea: {
     flex: 1,
     backgroundColor: "#F5F5F5",
     paddingHorizontal: 24,
   },
+
   content: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
+
   iconContainer: {
     marginBottom: 24,
   },
-  footer: {
-    paddingBottom: 40,
-  },
 
-  // TEXTOS Y TIPOGRAFÍAS
   title: {
     fontSize: 24,
     fontWeight: "bold",
@@ -61,11 +66,16 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: "center",
   },
+
   subtitle: {
     fontSize: 16,
     color: "#666",
     textAlign: "center",
     lineHeight: 24,
     paddingHorizontal: 20,
+  },
+
+  footer: {
+    paddingBottom: 40,
   },
 });

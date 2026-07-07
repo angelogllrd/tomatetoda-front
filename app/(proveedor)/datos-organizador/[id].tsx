@@ -204,7 +204,7 @@ export default function DatosOrganizadorScreen() {
           title="Volver a mis ofertas"
           variant="secondary"
           style={{ marginTop: 8 }}
-          onPress={() => router.push("/(tabs-prov)/mis-ofertas")}
+          onPress={() => router.push("/mis-ofertas")}
         />
       </ScrollView>
     </SafeAreaView>
