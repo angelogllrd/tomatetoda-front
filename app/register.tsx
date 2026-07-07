@@ -1,6 +1,7 @@
 import Button from "@/components/Button";
 import HeaderBackButton from "@/components/HeaderBackButton";
 import api from "@/services/api";
+import { isValidEmail } from "@/utils/validations";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
@@ -33,10 +34,6 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   // FUNCIONES DE VALIDACIÓN
-  const isValidEmail = (emailStr: string) => {
-    return /\S+@\S+\.\S+/.test(emailStr);
-  };
-
   const isValidPhone = (phoneStr: string) => {
     return /^\+?[0-9\s\-]{8,20}$/.test(phoneStr);
   };

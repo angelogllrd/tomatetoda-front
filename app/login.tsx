@@ -1,5 +1,6 @@
 import Button from "@/components/Button";
 import api from "@/services/api";
+import { isValidEmail } from "@/utils/validations";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Para guardar el token
 import { useRouter } from "expo-router";
@@ -34,11 +35,6 @@ export default function LoginScreen() {
       setEmail("carlos@demo.com");
       setPassword("12345678");
     }
-  };
-
-  // Función de validación de email
-  const isValidEmail = (emailStr: string) => {
-    return /\S+@\S+\.\S+/.test(emailStr);
   };
 
   // Lógica de inicio de sesión con Laravel

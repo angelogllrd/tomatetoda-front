@@ -1,5 +1,6 @@
 import Button from "@/components/Button";
 import HeaderBackButton from "@/components/HeaderBackButton";
+import { isValidEmail } from "@/utils/validations";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
@@ -10,10 +11,6 @@ export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState("");
   const [step, setStep] = useState(1);
   const [errorMsg, setErrorMsg] = useState("");
-
-  const isValidEmail = (emailStr: string) => {
-    return /\S+@\S+\.\S+/.test(emailStr);
-  };
 
   const handleSendInstructions = () => {
     setErrorMsg("");
