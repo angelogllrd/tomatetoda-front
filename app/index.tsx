@@ -1,4 +1,5 @@
 import Button from "@/components/Button";
+import imagePath from "@/constants/imagePath";
 import { useRouter } from "expo-router";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,7 +18,7 @@ export default function WelcomeScreen() {
 
       <View style={styles.content}>
         <Image
-          source={require("@/assets/images/logo.png")}
+          source={imagePath.logo}
           style={styles.logo}
           resizeMode="contain"
         />

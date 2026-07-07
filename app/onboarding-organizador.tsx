@@ -1,7 +1,9 @@
 import Button from "@/components/Button";
+import imagePath from "@/constants/imagePath";
 import { useRouter } from "expo-router";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
 
 export default function OnboardingOrgScreen() {
   const router = useRouter();
@@ -17,7 +19,7 @@ export default function OnboardingOrgScreen() {
 
       <View style={styles.content}>
         <Image
-          source={require("@/assets/images/onboarding-org.png")}
+          source={imagePath.onboardingOrg}
           style={styles.image}
           resizeMode="contain"
         />
